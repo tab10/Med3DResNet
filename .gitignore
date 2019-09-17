@@ -1,0 +1,5 @@
+#Every ignore path should have a comment to explain why those files are ignored
+
+#Ignore the virtual environment or the git repo will be multiple gigabytes large!
+venv/
+
