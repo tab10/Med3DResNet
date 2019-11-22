@@ -35,10 +35,10 @@ class DICOMCrossSectionalImage:
                                                        self.heart_landmarks.landmarks[4], interp_factor)
             bounds[1] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[1],
                                                        self.heart_landmarks.landmarks[5], interp_factor)
-            bounds[2] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[3],
-                                                       self.heart_landmarks.landmarks[7], interp_factor)
-            bounds[3] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[2],
+            bounds[2] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[2],
                                                        self.heart_landmarks.landmarks[6], interp_factor)
+            bounds[3] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[3],
+                                                       self.heart_landmarks.landmarks[7], interp_factor)
 
         return bounds
 

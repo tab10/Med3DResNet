@@ -35,12 +35,12 @@ class DICOMAnnotationWidget(QWidget):
         self.landmark_select_combo_box = QComboBox()
         self.landmark_select_combo_box.addItems(["Front left atrium (Superior)",
                                                  "Front right atrium (Superior)",
-                                                 "Aorta (Superior)",
                                                  "Back right atrium (Superior)",
+                                                 "Aorta (Superior)",
                                                  "Front left ventricle (Inferior)",
                                                  "Front right ventricle (Inferior)",
-                                                 "Back left ventricle (Inferior)",
                                                  "Back right ventricle (Inferior)",
+                                                 "Back left ventricle (Inferior)",
                                                  "None"])
         self.landmark_select_combo_box.setCurrentIndex(8)
         self.landmark_select_combo_box.currentIndexChanged.connect(self.on_landmark_selection_changed)
