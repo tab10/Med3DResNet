@@ -34,10 +34,12 @@ class XYSpinnerComboWidget(QWidget):
         vertical_layout = QVBoxLayout(self)
         horizontal_layout = QHBoxLayout(self)
 
+        horizontal_layout.addStretch(1)
         horizontal_layout.addWidget(self.x_label)
         horizontal_layout.addWidget(self.x_spinner)
         horizontal_layout.addWidget(self.y_label)
         horizontal_layout.addWidget(self.y_spinner)
+        horizontal_layout.addStretch(1)
 
         vertical_layout.addWidget(self.title_label)
         vertical_layout.addLayout(horizontal_layout)
