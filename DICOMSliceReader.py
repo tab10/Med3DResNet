@@ -16,3 +16,6 @@ def read_3d_slices_from_dir(dir):
 
     return slices
 
+def read_single_pixmap(path):
+    dicom_file = pydicom.read_file(path)
+    return dicom_file.pixel_array

@@ -1,5 +1,6 @@
 from DICOMCrossSectionalImage import DICOMCrossSectionalImage
 import os
+import numpy as np
 import json
 
 def export_annotations(file_path, cross_sectional_image):
@@ -10,7 +11,8 @@ def export_annotations(file_path, cross_sectional_image):
 
     for slice_idx in range(cross_sectional_image.superior_slice, cross_sectional_image.inferior_slice + 1):
         slice_bounds = cross_sectional_image.get_slice_bounds(slice_idx)
-        file_name = cross_sectional_image.get_slice(slice_idx).filename
+        file_name = os.path.basename(cross_sectional_image.get_slice(slice_idx).filename)
+        pixel_data = cross_sectional_image.get_slice(slice_idx).pixel_array
 
         data['slices'].append({
             'file_name': file_name,

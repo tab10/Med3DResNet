@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib.path import Path
 
 def point_interpolant_1d(val, min_val, max_val):
     return (float(val) - float(min_val)) / (float(max_val) - float(min_val))
@@ -27,4 +28,5 @@ def scale_matrix(matrix, min_val, max_val, global_min=None, global_max=None):
     return res_matrix
 
 def inside_quadrilateral(point, bounds):
-    pass
+    path = Path(bounds)
+    return path.contains_point(point)
