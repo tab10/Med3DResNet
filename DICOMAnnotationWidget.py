@@ -3,8 +3,10 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLab
 from SpinnerDialComboWidget import SpinnerDialComboWidget
 from XYSpinnerComboWidget import XYSpinnerComboWidget
 from ViewSliceWidget import ViewSliceWidget
+from ViewSliceDataWidget import ViewSliceDataWidget
 from DICOMCrossSectionalImage import DICOMCrossSectionalImage
 import DataExport
+import os
 
 class DICOMAnnotationWidget(QWidget):
 
@@ -51,6 +53,10 @@ class DICOMAnnotationWidget(QWidget):
 
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
+        self.view_slice_widget.mouse_moved.connect(self.on_view_slice_widget_mouse_move)
+
+        self.view_slice_data_widget = ViewSliceDataWidget()
+        self.view_slice_data_widget.setEnabled(False)
 
         self.update_instance_image()
 
@@ -82,6 +88,7 @@ class DICOMAnnotationWidget(QWidget):
         vertical_layout.addLayout(dir_open_horizontal_layout)
         vertical_layout.addLayout(tools_grid_layout)
         vertical_layout.addWidget(self.view_slice_widget)
+        vertical_layout.addWidget(self.view_slice_data_widget)
         vertical_layout.addStretch(1)
 
     @pyqtSlot()
@@ -91,6 +98,7 @@ class DICOMAnnotationWidget(QWidget):
         self.cross_sectional_image = DICOMCrossSectionalImage(dir_name)
 
         self.export_button.setEnabled(True)
+        self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_instance_image()
 
@@ -158,12 +166,25 @@ class DICOMAnnotationWidget(QWidget):
 
         self.landmark_position_adjuster.set_coords((x, y))
 
+    @pyqtSlot()
+    def on_view_slice_widget_mouse_move(self):
+        if self.cross_sectional_image is None:
+            return
+
+        slice = self.cross_sectional_image.get_slice(self.view_slice)
+        slice_file_name = os.path.basename(slice.filename)
+        mouse_x = self.view_slice_widget.mouse_x
+        mouse_y = self.view_slice_widget.mouse_y
+        slice_pixel_value = slice.pixel_array[mouse_y, mouse_x]
+
+        self.view_slice_data_widget.update_data(slice_file_name, slice_pixel_value, mouse_x, mouse_y)
+
     def update_instance_image(self):
         if self.cross_sectional_image is None:
             return
 
-        self.view_slice_widget.update_image(self.cross_sectional_image, self.view_slice,
-                                                     self.landmark_select_combo_box.currentIndex())
+        self.view_slice_widget.update_image_data(self.cross_sectional_image, self.view_slice,
+                                                 self.landmark_select_combo_box.currentIndex())
 
     def reset_controls(self):
         self.view_slice_adjuster.blockSignals(True)
