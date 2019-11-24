@@ -54,6 +54,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
         self.view_slice_widget.mouse_moved.connect(self.on_view_slice_widget_mouse_move)
+        self.view_slice_widget.mouse_scrolled.connect(self.on_view_slice_widget_mouse_scroll)
 
         self.view_slice_data_widget = ViewSliceDataWidget()
         self.view_slice_data_widget.setEnabled(False)
@@ -176,6 +177,19 @@ class DICOMAnnotationWidget(QWidget):
             return
 
         self.update_view_slice_data_widget()
+
+    @pyqtSlot(int)
+    def on_view_slice_widget_mouse_scroll(self, scroll_factor):
+        if self.cross_sectional_image is None:
+            return
+
+        slice_idx = self.view_slice + scroll_factor
+        if slice_idx < 0:
+            slice_idx = 0
+        if slice_idx >= self.cross_sectional_image.slice_count:
+            slice_idx = self.cross_sectional_image.slice_count - 1
+            
+        self.view_slice_adjuster.set_value(slice_idx)
 
     def update_instance_image(self):
         if self.cross_sectional_image is None:
