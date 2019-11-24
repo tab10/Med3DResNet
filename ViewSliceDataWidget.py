@@ -32,3 +32,6 @@ class ViewSliceDataWidget(QWidget):
         self.file_name_label.setText(f"DICOM File: {file_name}")
         self.pixel_value_label.setText(f"Pixel Value: {pixel_value}")
         self.pixel_coords_label.setText(f"X: {pixel_x} Y: {pixel_y}")
+
+    def update_file_name(self, file_name):
+        self.file_name_label.setText(f"DICOM File: {file_name}")

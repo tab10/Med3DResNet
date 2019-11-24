@@ -7,6 +7,7 @@ import MathUtil
 class ViewSliceWidget(QLabel):
     mouse_moved = pyqtSignal()
     mouse_dragged = pyqtSignal()
+    mouse_scrolled = pyqtSignal(int)
 
     def __init__(self, parent=None):
         QLabel.__init__(self, parent=None)
@@ -27,6 +28,7 @@ class ViewSliceWidget(QLabel):
         self.mousePressEvent = self.on_mouse_press_event
         self.mouseReleaseEvent = self.on_mouse_release_event
         self.mouseMoveEvent = self.on_mouse_drag_event
+        self.wheelEvent = self.on_mouse_wheel_event
 
     def update_image_data(self, cross_sectional_image, slice_idx, landmark_idx):
         pixel_array = cross_sectional_image.get_slice(slice_idx).pixel_array
@@ -153,3 +155,8 @@ class ViewSliceWidget(QLabel):
         self.update_display()
         if self.mouse_held:
             self.mouse_dragged.emit()
+
+    def on_mouse_wheel_event(self, event):
+        scroll_angle = event.angleDelta().y()
+        scroll_factor = 0 if scroll_angle == 0 else (1 if scroll_angle > 0 else -1)
+        self.mouse_scrolled.emit(scroll_factor)

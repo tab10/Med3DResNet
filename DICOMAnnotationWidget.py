@@ -54,6 +54,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
         self.view_slice_widget.mouse_moved.connect(self.on_view_slice_widget_mouse_move)
+        self.view_slice_widget.mouse_scrolled.connect(self.on_view_slice_widget_mouse_scroll)
 
         self.view_slice_data_widget = ViewSliceDataWidget()
         self.view_slice_data_widget.setEnabled(False)
@@ -101,6 +102,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_instance_image()
+        self.update_view_slice_data_widget()
 
     @pyqtSlot()
     def on_export_button_clicked(self):
@@ -114,6 +116,9 @@ class DICOMAnnotationWidget(QWidget):
             return
 
         self.view_slice = self.view_slice_adjuster.value
+
+        self.update_view_slice_data_widget()
+
         self.update_instance_image()
 
     @pyqtSlot()
@@ -171,13 +176,20 @@ class DICOMAnnotationWidget(QWidget):
         if self.cross_sectional_image is None:
             return
 
-        slice = self.cross_sectional_image.get_slice(self.view_slice)
-        slice_file_name = os.path.basename(slice.filename)
-        mouse_x = self.view_slice_widget.mouse_x
-        mouse_y = self.view_slice_widget.mouse_y
-        slice_pixel_value = slice.pixel_array[mouse_y, mouse_x]
+        self.update_view_slice_data_widget()
 
-        self.view_slice_data_widget.update_data(slice_file_name, slice_pixel_value, mouse_x, mouse_y)
+    @pyqtSlot(int)
+    def on_view_slice_widget_mouse_scroll(self, scroll_factor):
+        if self.cross_sectional_image is None:
+            return
+
+        slice_idx = self.view_slice + scroll_factor
+        if slice_idx < 0:
+            slice_idx = 0
+        if slice_idx >= self.cross_sectional_image.slice_count:
+            slice_idx = self.cross_sectional_image.slice_count - 1
+            
+        self.view_slice_adjuster.set_value(slice_idx)
 
     def update_instance_image(self):
         if self.cross_sectional_image is None:
@@ -185,6 +197,15 @@ class DICOMAnnotationWidget(QWidget):
 
         self.view_slice_widget.update_image_data(self.cross_sectional_image, self.view_slice,
                                                  self.landmark_select_combo_box.currentIndex())
+
+    def update_view_slice_data_widget(self):
+        slice = self.cross_sectional_image.get_slice(self.view_slice)
+        slice_file_name = os.path.basename(slice.filename)
+        mouse_x = self.view_slice_widget.mouse_x
+        mouse_y = self.view_slice_widget.mouse_y
+        slice_pixel_value = slice.pixel_array[mouse_y, mouse_x]
+
+        self.view_slice_data_widget.update_data(slice_file_name, slice_pixel_value, mouse_x, mouse_y)
 
     def reset_controls(self):
         self.view_slice_adjuster.blockSignals(True)
