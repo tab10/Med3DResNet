@@ -26,11 +26,21 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
 
-        self.superior_slice_adjuster = SpinnerDialComboWidget("Superior Slice", 0, 0, 0)
-        self.superior_slice_adjuster.value_changed.connect(self.on_superior_slice_adjuster_changed)
+        self.superior_slice_adjuster_label = QLabel("Superior Slice")
+        self.superior_slice_adjuster = QSpinBox()
+        self.superior_slice_adjuster.setMinimum(0)
+        self.superior_slice_adjuster.setMaximum(0)
+        self.superior_slice_adjuster.valueChanged.connect(self.on_superior_slice_adjuster_changed)
+        self.view_to_superior_button = QPushButton("Set to view slice")
+        self.view_to_superior_button.clicked.connect(self.on_view_to_superior_button_clicked)
 
-        self.inferior_slice_adjuster = SpinnerDialComboWidget("Inferior Slice", 0, 0, 0)
-        self.inferior_slice_adjuster.value_changed.connect(self.on_inferior_slice_adjuster_changed)
+        self.inferior_slice_adjuster_label = QLabel("Inferior Slice")
+        self.inferior_slice_adjuster = QSpinBox()
+        self.inferior_slice_adjuster.setMinimum(0)
+        self.inferior_slice_adjuster.setMaximum(0)
+        self.inferior_slice_adjuster.valueChanged.connect(self.on_inferior_slice_adjuster_changed)
+        self.view_to_inferior_button = QPushButton("Set to view slice")
+        self.view_to_inferior_button.clicked.connect(self.on_view_to_inferior_button_clicked)
 
         self.landmark_select_label = QLabel("Select a heart landmark to position")
 
@@ -66,27 +76,37 @@ class DICOMAnnotationWidget(QWidget):
     def setup_gui(self):
 
         vertical_layout = QVBoxLayout(self)
-        dir_open_horizontal_layout = QHBoxLayout()
         landmark_select_vertical_layout = QVBoxLayout()
+        boundary_slice_vertical_layout = QVBoxLayout()
         tools_grid_layout = QGridLayout()
 
-        dir_open_horizontal_layout.addWidget(self.image_directory_button)
-        dir_open_horizontal_layout.addWidget(self.export_button)
+        tools_grid_layout.setColumnStretch(0, 1)
 
-        tools_grid_layout.addWidget(self.view_slice_adjuster, 0, 0)
+        tools_grid_layout.addWidget(self.image_directory_button, 0, 0)
 
-        tools_grid_layout.addWidget(self.superior_slice_adjuster, 0, 1)
-        tools_grid_layout.addWidget(self.inferior_slice_adjuster, 0, 2)
+        tools_grid_layout.setColumnStretch(1, 1)
+
+        tools_grid_layout.addWidget(self.export_button, 0, 1)
+
+        tools_grid_layout.addWidget(self.view_slice_adjuster, 1, 0)
+
+        boundary_slice_vertical_layout.addWidget(self.superior_slice_adjuster_label)
+        boundary_slice_vertical_layout.addWidget(self.superior_slice_adjuster)
+        boundary_slice_vertical_layout.addWidget(self.view_to_superior_button)
+        boundary_slice_vertical_layout.addWidget(self.inferior_slice_adjuster_label)
+        boundary_slice_vertical_layout.addWidget(self.inferior_slice_adjuster)
+        boundary_slice_vertical_layout.addWidget(self.view_to_inferior_button)
+
+        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 1, 1)
 
         landmark_select_vertical_layout.addWidget(self.landmark_select_label)
         landmark_select_vertical_layout.addWidget(self.landmark_select_combo_box)
 
-        tools_grid_layout.addLayout(landmark_select_vertical_layout, 1, 0)
+        tools_grid_layout.addLayout(landmark_select_vertical_layout, 2, 0)
 
-        tools_grid_layout.addWidget(self.landmark_position_adjuster, 1, 1)
+        tools_grid_layout.addWidget(self.landmark_position_adjuster, 2, 1)
 
         vertical_layout.setAlignment(Qt.AlignCenter)
-        vertical_layout.addLayout(dir_open_horizontal_layout)
         vertical_layout.addLayout(tools_grid_layout)
         vertical_layout.addWidget(self.view_slice_widget)
         vertical_layout.addWidget(self.view_slice_data_widget)
@@ -94,7 +114,7 @@ class DICOMAnnotationWidget(QWidget):
 
     @pyqtSlot()
     def on_image_directory_button_clicked(self):
-        dir_name = QFileDialog.getExistingDirectory(self, 'Select directory', 'c:\\')
+        dir_name = QFileDialog.getExistingDirectory(self, 'Select directory to read DICOM data', 'c:\\')
 
         self.cross_sectional_image = DICOMCrossSectionalImage(dir_name)
 
@@ -106,9 +126,8 @@ class DICOMAnnotationWidget(QWidget):
 
     @pyqtSlot()
     def on_export_button_clicked(self):
-        file_path = QFileDialog.getSaveFileName(self, 'Save annotations', 'c:\\', 'TXT(.txt)')[0]
-        print(file_path)
-        DataExport.export_annotations(file_path, self.cross_sectional_image)
+        dir_path = QFileDialog.getExistingDirectory(self, 'Select directory to create annotation file', 'c:\\')
+        DataExport.export_annotations(dir_path, self.cross_sectional_image)
 
     @pyqtSlot()
     def on_view_slice_adjuster_changed(self):
@@ -126,14 +145,42 @@ class DICOMAnnotationWidget(QWidget):
         if self.cross_sectional_image is None:
             return
 
-        self.cross_sectional_image.superior_slice = self.superior_slice_adjuster.value
+        value = self.superior_slice_adjuster.value()
+        self.cross_sectional_image.superior_slice = value
 
     @pyqtSlot()
     def on_inferior_slice_adjuster_changed(self):
         if self.cross_sectional_image is None:
             return
 
-        self.cross_sectional_image.inferior_slice = self.inferior_slice_adjuster.value
+        value = self.inferior_slice_adjuster.value()
+        self.cross_sectional_image.superior_slice = value
+
+    @pyqtSlot()
+    def on_view_to_superior_button_clicked(self):
+        if self.cross_sectional_image is None:
+            return
+
+        value = self.view_slice_adjuster.value
+        if value >= self.cross_sectional_image.slice_count - 1:
+            return
+
+        self.inferior_slice_adjuster.setMinimum(value + 1)
+        self.superior_slice_adjuster.setMaximum(self.inferior_slice_adjuster.value() - 1)
+        self.superior_slice_adjuster.setValue(value)
+
+    @pyqtSlot()
+    def on_view_to_inferior_button_clicked(self):
+        if self.cross_sectional_image is None:
+            return
+
+        value = self.view_slice_adjuster.value
+        if value <= 0:
+            return
+
+        self.superior_slice_adjuster.setMaximum(value - 1)
+        self.inferior_slice_adjuster.setMinimum(self.superior_slice_adjuster.value() + 1)
+        self.inferior_slice_adjuster.setValue(value)
 
     @pyqtSlot(int)
     def on_landmark_selection_changed(self, index):
@@ -188,7 +235,7 @@ class DICOMAnnotationWidget(QWidget):
             slice_idx = 0
         if slice_idx >= self.cross_sectional_image.slice_count:
             slice_idx = self.cross_sectional_image.slice_count - 1
-            
+
         self.view_slice_adjuster.set_value(slice_idx)
 
     def update_instance_image(self):
@@ -218,11 +265,13 @@ class DICOMAnnotationWidget(QWidget):
 
         self.view_slice = 0
 
-        self.superior_slice_adjuster.set_max(max_slice)
-        self.superior_slice_adjuster.set_value(0)
+        self.superior_slice_adjuster.setMinimum(0)
+        self.superior_slice_adjuster.setMaximum(max_slice - 1)
+        self.superior_slice_adjuster.setValue(0)
 
-        self.inferior_slice_adjuster.set_max(max_slice)
-        self.inferior_slice_adjuster.set_value(max_slice)
+        self.inferior_slice_adjuster.setMinimum(1)
+        self.inferior_slice_adjuster.setMaximum(max_slice)
+        self.inferior_slice_adjuster.setValue(max_slice)
 
         self.view_slice_adjuster.set_max(max_slice)
         self.view_slice_adjuster.set_value(0)

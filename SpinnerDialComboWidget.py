@@ -39,7 +39,7 @@ class SpinnerDialComboWidget(QWidget):
 
     @pyqtSlot()
     def on_dial_changed(self):
-        self.value = self.spinner.value()
+        self.value = self.dial.value()
 
         self.spinner.blockSignals(True)
 
