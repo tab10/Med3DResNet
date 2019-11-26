@@ -148,13 +148,17 @@ class DICOMAnnotationWidget(QWidget):
         value = self.superior_slice_adjuster.value()
         self.cross_sectional_image.superior_slice = value
 
+        self.update_instance_image()
+
     @pyqtSlot()
     def on_inferior_slice_adjuster_changed(self):
         if self.cross_sectional_image is None:
             return
 
         value = self.inferior_slice_adjuster.value()
-        self.cross_sectional_image.superior_slice = value
+        self.cross_sectional_image.inferior_slice = value
+
+        self.update_instance_image()
 
     @pyqtSlot()
     def on_view_to_superior_button_clicked(self):
