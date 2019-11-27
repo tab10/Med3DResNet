@@ -3,8 +3,8 @@ import os
 import numpy as np
 import json
 
-def export_annotations(file_path, cross_sectional_image):
-    file_name = file_path + '.txt'
+def export_annotations(dir_path, cross_sectional_image):
+    file_name = os.path.join(dir_path, cross_sectional_image.patient_id + "_annotations.txt")
     file = open(file_name, 'w')
     data = {}
     data['slices'] = []
@@ -15,6 +15,7 @@ def export_annotations(file_path, cross_sectional_image):
         pixel_data = cross_sectional_image.get_slice(slice_idx).pixel_array
 
         data['slices'].append({
+            'slice_index': slice_idx,
             'file_name': file_name,
             'bounds': slice_bounds
         })

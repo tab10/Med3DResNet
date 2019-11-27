@@ -9,6 +9,7 @@ class DICOMCrossSectionalImage:
         self.dir_name = dir_name
         self.dicom_slices = DICOMSliceReader.read_3d_slices_from_dir(dir_name)
 
+        self.patient_id = self.dicom_slices[0].__getattr__("PatientID")
         self.slice_shape = self.dicom_slices[0].pixel_array.shape
         self.slice_count = len(self.dicom_slices)
         self.shape = [self.slice_shape[0], self.slice_shape[1], self.slice_count]
