@@ -5,6 +5,7 @@ from XYSpinnerComboWidget import XYSpinnerComboWidget
 from ViewSliceWidget import ViewSliceWidget
 from ViewSliceDataWidget import ViewSliceDataWidget
 from DICOMCrossSectionalImage import DICOMCrossSectionalImage
+import DICOMSliceReader
 import DataExport
 import os
 
@@ -45,14 +46,14 @@ class DICOMAnnotationWidget(QWidget):
         self.landmark_select_label = QLabel("Select a heart landmark to position")
 
         self.landmark_select_combo_box = QComboBox()
-        self.landmark_select_combo_box.addItems(["Front left atrium (Superior)",
-                                                 "Front right atrium (Superior)",
-                                                 "Back right atrium (Superior)",
-                                                 "Aorta (Superior)",
-                                                 "Front left ventricle (Inferior)",
-                                                 "Front right ventricle (Inferior)",
-                                                 "Back right ventricle (Inferior)",
-                                                 "Back left ventricle (Inferior)",
+        self.landmark_select_combo_box.addItems(["Front right atrium (Superior X-Y+)",
+                                                 "Front left atrium (Superior X+Y+)",
+                                                 "Back left atrium (Superior X+Y-)",
+                                                 "Aorta (Superior X-Y-)",
+                                                 "Front right ventricle (Inferior X-Y+)",
+                                                 "Front left ventricle (Inferior X+Y+)",
+                                                 "Back left ventricle (Inferior X+Y-)",
+                                                 "Back right ventricle (Inferior X-Y-)",
                                                  "None"])
         self.landmark_select_combo_box.setCurrentIndex(8)
         self.landmark_select_combo_box.currentIndexChanged.connect(self.on_landmark_selection_changed)
@@ -60,6 +61,12 @@ class DICOMAnnotationWidget(QWidget):
         self.landmark_position_adjuster = XYSpinnerComboWidget("Landmark position", (0, 0), (0, 0))
         self.landmark_position_adjuster.value_changed.connect(self.on_landmark_position_adjuster_changed)
         self.landmark_position_adjuster.setEnabled(False)
+
+        self.reset_landmarks_button = QPushButton("Reset Landmarks")
+        self.reset_landmarks_button.clicked.connect(self.on_reset_landmarks_button_clicked)
+
+        self.reverse_slices_button = QPushButton("Reverse Slices")
+        self.reverse_slices_button.clicked.connect(self.on_reverse_slices_button_clicked)
 
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
@@ -69,7 +76,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_data_widget = ViewSliceDataWidget()
         self.view_slice_data_widget.setEnabled(False)
 
-        self.update_instance_image()
+        self.update_view_slice_widget()
 
         self.setup_gui()
 
@@ -80,16 +87,6 @@ class DICOMAnnotationWidget(QWidget):
         boundary_slice_vertical_layout = QVBoxLayout()
         tools_grid_layout = QGridLayout()
 
-        tools_grid_layout.setColumnStretch(0, 1)
-
-        tools_grid_layout.addWidget(self.image_directory_button, 0, 0)
-
-        tools_grid_layout.setColumnStretch(1, 1)
-
-        tools_grid_layout.addWidget(self.export_button, 0, 1)
-
-        tools_grid_layout.addWidget(self.view_slice_adjuster, 1, 0)
-
         boundary_slice_vertical_layout.addWidget(self.superior_slice_adjuster_label)
         boundary_slice_vertical_layout.addWidget(self.superior_slice_adjuster)
         boundary_slice_vertical_layout.addWidget(self.view_to_superior_button)
@@ -97,14 +94,19 @@ class DICOMAnnotationWidget(QWidget):
         boundary_slice_vertical_layout.addWidget(self.inferior_slice_adjuster)
         boundary_slice_vertical_layout.addWidget(self.view_to_inferior_button)
 
-        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 1, 1)
-
         landmark_select_vertical_layout.addWidget(self.landmark_select_label)
         landmark_select_vertical_layout.addWidget(self.landmark_select_combo_box)
 
+        tools_grid_layout.setColumnStretch(0, 1)
+        tools_grid_layout.addWidget(self.image_directory_button, 0, 0)
+        tools_grid_layout.setColumnStretch(1, 1)
+        tools_grid_layout.addWidget(self.export_button, 0, 1)
+        tools_grid_layout.addWidget(self.view_slice_adjuster, 1, 0)
+        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 1, 1)
         tools_grid_layout.addLayout(landmark_select_vertical_layout, 2, 0)
-
         tools_grid_layout.addWidget(self.landmark_position_adjuster, 2, 1)
+        tools_grid_layout.addWidget(self.reset_landmarks_button, 3, 0)
+        tools_grid_layout.addWidget(self.reverse_slices_button, 3, 1)
 
         vertical_layout.setAlignment(Qt.AlignCenter)
         vertical_layout.addLayout(tools_grid_layout)
@@ -115,18 +117,28 @@ class DICOMAnnotationWidget(QWidget):
     @pyqtSlot()
     def on_image_directory_button_clicked(self):
         dir_name = QFileDialog.getExistingDirectory(self, 'Select directory to read DICOM data', 'c:\\')
+        if not dir_name:
+            return
 
-        self.cross_sectional_image = DICOMCrossSectionalImage(dir_name)
+        dicom_slices = DICOMSliceReader.read_3d_slices_from_dir(dir_name)
+        if len(dicom_slices) <= 1:
+            self.showInvalidDirectoryMessageBox()
+            return
+
+        self.cross_sectional_image = DICOMCrossSectionalImage(dicom_slices)
 
         self.export_button.setEnabled(True)
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
-        self.update_instance_image()
+        self.update_view_slice_widget()
         self.update_view_slice_data_widget()
 
     @pyqtSlot()
     def on_export_button_clicked(self):
         dir_path = QFileDialog.getExistingDirectory(self, 'Select directory to create annotation file', 'c:\\')
+        if not dir_path:
+            return
+
         DataExport.export_annotations(dir_path, self.cross_sectional_image)
 
     @pyqtSlot()
@@ -138,7 +150,7 @@ class DICOMAnnotationWidget(QWidget):
 
         self.update_view_slice_data_widget()
 
-        self.update_instance_image()
+        self.update_view_slice_widget()
 
     @pyqtSlot()
     def on_superior_slice_adjuster_changed(self):
@@ -148,7 +160,7 @@ class DICOMAnnotationWidget(QWidget):
         value = self.superior_slice_adjuster.value()
         self.cross_sectional_image.superior_slice = value
 
-        self.update_instance_image()
+        self.update_view_slice_widget()
 
     @pyqtSlot()
     def on_inferior_slice_adjuster_changed(self):
@@ -158,7 +170,7 @@ class DICOMAnnotationWidget(QWidget):
         value = self.inferior_slice_adjuster.value()
         self.cross_sectional_image.inferior_slice = value
 
-        self.update_instance_image()
+        self.update_view_slice_widget()
 
     @pyqtSlot()
     def on_view_to_superior_button_clicked(self):
@@ -200,7 +212,7 @@ class DICOMAnnotationWidget(QWidget):
         self.landmark_position_adjuster.set_coords(self.cross_sectional_image.heart_landmarks.landmarks[index])
         self.landmark_position_adjuster.blockSignals(False)
 
-        self.update_instance_image()
+        self.update_view_slice_widget()
 
     @pyqtSlot()
     def on_landmark_position_adjuster_changed(self):
@@ -210,7 +222,7 @@ class DICOMAnnotationWidget(QWidget):
 
         self.cross_sectional_image.heart_landmarks.landmarks[index] = (self.landmark_position_adjuster.cur_coords)
 
-        self.update_instance_image()
+        self.update_view_slice_widget()
 
     @pyqtSlot()
     def on_view_slice_widget_mouse_drag(self):
@@ -242,7 +254,27 @@ class DICOMAnnotationWidget(QWidget):
 
         self.view_slice_adjuster.set_value(slice_idx)
 
-    def update_instance_image(self):
+    @pyqtSlot()
+    def on_reset_landmarks_button_clicked(self):
+        self.cross_sectional_image.set_default_landmarks()
+        self.update_view_slice_widget()
+        self.update_view_slice_data_widget()
+
+    @pyqtSlot()
+    def on_reverse_slices_button_clicked(self):
+        self.cross_sectional_image.reverse_slices()
+        self.update_view_slice_widget()
+        self.update_view_slice_data_widget()
+
+    def showInvalidDirectoryMessageBox(self):
+        message_box = QMessageBox()
+        message_box.setWindowTitle("Invalid Directory")
+        message_box.setText("Cannot open this directory; please select a directory with at least two valid DICOM "
+                            "(.dcm) files.")
+        message_box.exec_()
+        pass
+
+    def update_view_slice_widget(self):
         if self.cross_sectional_image is None:
             return
 

@@ -12,6 +12,8 @@ def read_3d_slices_from_dir(dir):
             dicom_file = pydicom.read_file(file_path)
             if hasattr(dicom_file, 'SliceLocation'):
                 slices.append(dicom_file)
+
+    if len(slices) > 0:
         slices = sorted(slices, reverse=True, key=lambda slice: slice.SliceLocation)
 
     return slices
