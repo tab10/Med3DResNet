@@ -1,13 +1,11 @@
-import DICOMSliceReader
 from HeartLandmarks import HeartLandmarks
 import numpy as np
 import MathUtil
 
 class DICOMCrossSectionalImage:
 
-    def __init__(self, dir_name=None):
-        self.dir_name = dir_name
-        self.dicom_slices = DICOMSliceReader.read_3d_slices_from_dir(dir_name)
+    def __init__(self, dicom_slices):
+        self.dicom_slices = dicom_slices
 
         self.patient_id = self.dicom_slices[0].__getattr__("PatientID")
         self.slice_shape = self.dicom_slices[0].pixel_array.shape
@@ -42,6 +40,9 @@ class DICOMCrossSectionalImage:
                                                        self.heart_landmarks.landmarks[7], interp_factor)
 
         return bounds
+
+    def reverse_slices(self):
+        self.dicom_slices.reverse()
 
 
 
