@@ -24,4 +24,6 @@ TODO: mention correlation between lung cancer/smoking and heart disease as maybe
 TODO: build docker file
 make youtube video
 
+#### References
+https://www.health.harvard.edu/heart-health/when-you-look-for-cancer-you-might-find-heart-disease
 CT heart anatomy reference: https://www.youtube.com/watch?v=4pjkCFrcysk&t=216s
