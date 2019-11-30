@@ -1,14 +1,17 @@
 # this code trains and tests a 3d cnn on the hearts
 # Tim Burt 11/15/19
 
-# inputs
+# TODO: test on sabine
+#
+
+
 
 
 import tensorflow as tf
 import numpy as np
 
-IMG_SIZE_PX = 50
-SLICE_COUNT = 20
+IMG_SIZE_PX = 256
+SLICE_COUNT = 3
 
 n_classes = 2
 batch_size = 10
@@ -62,12 +65,6 @@ def convolutional_neural_network(x):
 
     return output
 
-def generate_fake_data(input_dims):
-	#much_data = np.load('muchdata-50-50-20.npy')
-	#
-train_data = much_data[:-100]
-validation_data = much_data[-100:]
-
 
 def train_neural_network(x):
 	prediction = convolutional_neural_network(x)
@@ -110,5 +107,8 @@ def train_neural_network(x):
 
 		print('fitment percent:', successful_runs / total_runs)
 
-# Run this locally:
-# train_neural_network(x)
+
+if __name__ == "__main__":
+	train_neural_network(x)
+
+
