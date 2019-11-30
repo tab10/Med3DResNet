@@ -19,7 +19,9 @@ TODO: change annotation.txt to output annotation_ID*.txt with * the patient inde
 
 ### Results
 TODO: mention correlation between lung cancer/smoking and heart disease as maybe bias
-
+    how to discard patients under 40 years old (this test is almost always negative)
 ### Tutorial
 TODO: build docker file
 make youtube video
+
+CT heart anatomy reference: https://www.youtube.com/watch?v=4pjkCFrcysk&t=216s
