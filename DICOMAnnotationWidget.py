@@ -46,14 +46,14 @@ class DICOMAnnotationWidget(QWidget):
         self.landmark_select_label = QLabel("Select a heart landmark to position")
 
         self.landmark_select_combo_box = QComboBox()
-        self.landmark_select_combo_box.addItems(["Front right atrium (Superior X-Y+)",
-                                                 "Front left atrium (Superior X+Y+)",
-                                                 "Back left atrium (Superior X+Y-)",
-                                                 "Aorta (Superior X-Y-)",
-                                                 "Front right ventricle (Inferior X-Y+)",
-                                                 "Front left ventricle (Inferior X+Y+)",
-                                                 "Back left ventricle (Inferior X+Y-)",
-                                                 "Back right ventricle (Inferior X-Y-)",
+        self.landmark_select_combo_box.addItems(["Ascending Aorta (Superior X-Y+)",
+                                                 "Pulmonary Trunk (Superior X+Y+)",
+                                                 "Descending Aorta (Superior X+Y-)",
+                                                 "Superior Vena Cava (Superior X-Y-)",
+                                                 "Right Ventricle (Inferior X-Y+)",
+                                                 "Left Ventricle (Inferior X+Y+)",
+                                                 "Descending Aorta (Inferior X+Y-)",
+                                                 "Inferior Vena Cava (Inferior X-Y-)",
                                                  "None"])
         self.landmark_select_combo_box.setCurrentIndex(8)
         self.landmark_select_combo_box.currentIndexChanged.connect(self.on_landmark_selection_changed)
@@ -140,6 +140,7 @@ class DICOMAnnotationWidget(QWidget):
             return
 
         DataExport.export_annotations(dir_path, self.cross_sectional_image)
+        DataExport.export_normalized_slices(dir_path, self.cross_sectional_image, 256, 256, 256)
 
     @pyqtSlot()
     def on_view_slice_adjuster_changed(self):
