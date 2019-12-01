@@ -1,5 +1,4 @@
-from enum import Enum
-
+import MathUtil
 
 class HeartLandmarks:
 
@@ -18,6 +17,15 @@ class HeartLandmarks:
 
         return [[min(x_values), max(x_values)], [min(y_values), max(y_values)]]
 
+    def get_scaled_superior(self, scale_factor):
+        bounds = self.landmarks[0:4]
+        scaled_bounds = MathUtil.scale_bounds(bounds, scale_factor)
+        return scaled_bounds
+
+    def get_scaled_inferior(self, scale_factor):
+        bounds = self.landmarks[4:8]
+        scaled_bounds = MathUtil.scale_bounds(bounds, scale_factor)
+        return scaled_bounds
 
 
 

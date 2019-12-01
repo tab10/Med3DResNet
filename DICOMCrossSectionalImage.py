@@ -1,6 +1,6 @@
 from HeartLandmarks import HeartLandmarks
-import numpy as np
 import MathUtil
+import math
 
 class DICOMCrossSectionalImage:
 
@@ -16,6 +16,7 @@ class DICOMCrossSectionalImage:
 
         self.superior_slice = 0
         self.inferior_slice = self.slice_count - 1
+        self.landmark_scale_factor = math.sqrt(2.0)
 
         self.heart_landmarks = HeartLandmarks()
         self.set_default_landmarks()
@@ -28,17 +29,23 @@ class DICOMCrossSectionalImage:
 
     def get_slice_bounds(self, slice_idx):
         bounds = [(0, 0)] * 4
+        scaled_superior_landmarks = self.heart_landmarks.get_scaled_superior(self.landmark_scale_factor)
+        scaled_inferior_landmarks = self.heart_landmarks.get_scaled_inferior(self.landmark_scale_factor)
         if self.superior_slice <= slice_idx <= self.inferior_slice:
             interp_factor = MathUtil.point_interpolant_1d(slice_idx, self.superior_slice, self.inferior_slice)
-            bounds[0] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[0],
-                                                       self.heart_landmarks.landmarks[4], interp_factor)
-            bounds[1] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[1],
-                                                       self.heart_landmarks.landmarks[5], interp_factor)
-            bounds[2] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[2],
-                                                       self.heart_landmarks.landmarks[6], interp_factor)
-            bounds[3] = MathUtil.linear_interpolate_2d(self.heart_landmarks.landmarks[3],
-                                                       self.heart_landmarks.landmarks[7], interp_factor)
+            bounds[0] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[0], scaled_inferior_landmarks[0],
+                                                       interp_factor)
+            bounds[1] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[1], scaled_inferior_landmarks[1],
+                                                       interp_factor)
+            bounds[2] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[2], scaled_inferior_landmarks[2],
+                                                       interp_factor)
+            bounds[3] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[3], scaled_inferior_landmarks[3],
+                                                       interp_factor)
 
+        bounds[0] = (max(bounds[0][0], 0), max(bounds[0][1], 0))
+        bounds[1] = (min(bounds[1][0], self.shape[1]-1), max(bounds[1][1], 0))
+        bounds[2] = (min(bounds[2][0], self.shape[1]-1), min(bounds[2][1], self.shape[0]-1))
+        bounds[3] = (max(bounds[3][0], 0), min(bounds[3][1], self.shape[0]-1))
         return bounds
 
     def reverse_slices(self):

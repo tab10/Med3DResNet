@@ -8,6 +8,7 @@ from DICOMCrossSectionalImage import DICOMCrossSectionalImage
 import DICOMSliceReader
 import DataExport
 import os
+import math
 
 class DICOMAnnotationWidget(QWidget):
 
@@ -42,6 +43,11 @@ class DICOMAnnotationWidget(QWidget):
         self.inferior_slice_adjuster.valueChanged.connect(self.on_inferior_slice_adjuster_changed)
         self.view_to_inferior_button = QPushButton("Set to view slice")
         self.view_to_inferior_button.clicked.connect(self.on_view_to_inferior_button_clicked)
+
+        self.slice_scale_label = QLabel("Boundary Slice Scale")
+        self.slice_scale_adjuster = QDoubleSpinBox()
+        self.slice_scale_adjuster.setMinimum(0.0)
+        self.slice_scale_adjuster.valueChanged.connect(self.on_slice_scale_adjuster_changed)
 
         self.landmark_select_label = QLabel("Select a heart landmark to position")
 
@@ -93,6 +99,8 @@ class DICOMAnnotationWidget(QWidget):
         boundary_slice_vertical_layout.addWidget(self.inferior_slice_adjuster_label)
         boundary_slice_vertical_layout.addWidget(self.inferior_slice_adjuster)
         boundary_slice_vertical_layout.addWidget(self.view_to_inferior_button)
+        boundary_slice_vertical_layout.addWidget(self.slice_scale_label)
+        boundary_slice_vertical_layout.addWidget(self.slice_scale_adjuster)
 
         landmark_select_vertical_layout.addWidget(self.landmark_select_label)
         landmark_select_vertical_layout.addWidget(self.landmark_select_combo_box)
@@ -200,6 +208,14 @@ class DICOMAnnotationWidget(QWidget):
         self.inferior_slice_adjuster.setMinimum(self.superior_slice_adjuster.value() + 1)
         self.inferior_slice_adjuster.setValue(value)
 
+    @pyqtSlot()
+    def on_slice_scale_adjuster_changed(self):
+        if self.cross_sectional_image is None:
+            return
+
+        self.cross_sectional_image.landmark_scale_factor = self.slice_scale_adjuster.value()
+        self.update_view_slice_widget()
+
     @pyqtSlot(int)
     def on_landmark_selection_changed(self, index):
         if index != 8:
@@ -258,12 +274,18 @@ class DICOMAnnotationWidget(QWidget):
 
     @pyqtSlot()
     def on_reset_landmarks_button_clicked(self):
+        if self.cross_sectional_image is None:
+            return
+
         self.cross_sectional_image.set_default_landmarks()
         self.update_view_slice_widget()
         self.update_view_slice_data_widget()
 
     @pyqtSlot()
     def on_reverse_slices_button_clicked(self):
+        if self.cross_sectional_image is None:
+            return
+
         self.cross_sectional_image.reverse_slices()
         self.update_view_slice_widget()
         self.update_view_slice_data_widget()
@@ -296,6 +318,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_adjuster.blockSignals(True)
         self.superior_slice_adjuster.blockSignals(True)
         self.inferior_slice_adjuster.blockSignals(True)
+        self.slice_scale_adjuster.blockSignals(True)
         self.landmark_position_adjuster.blockSignals(True)
 
         max_slice = self.cross_sectional_image.slice_count - 1
@@ -314,6 +337,8 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_adjuster.set_max(max_slice)
         self.view_slice_adjuster.set_value(0)
 
+        self.slice_scale_adjuster.setValue(self.cross_sectional_image.landmark_scale_factor)
+
         self.landmark_position_adjuster.set_bounds((slice_shape[1], slice_shape[0]))
         self.landmark_position_adjuster.set_coords((0, 0))
         self.landmark_select_combo_box.setCurrentIndex(8)
@@ -321,6 +346,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_adjuster.blockSignals(False)
         self.superior_slice_adjuster.blockSignals(False)
         self.inferior_slice_adjuster.blockSignals(False)
+        self.slice_scale_adjuster.blockSignals(False)
         self.landmark_position_adjuster.blockSignals(False)
 
 

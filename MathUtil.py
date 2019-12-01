@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def point_interpolant_1d(val, min_val, max_val):
     return (float(val) - float(min_val)) / (float(max_val) - float(min_val))
@@ -48,3 +49,24 @@ def scale_matrix(matrix, min_val, max_val, global_min=None, global_max=None):
     res_matrix = float_matrix.astype(np.uint8)
 
     return res_matrix
+
+def scale_bounds(bounds, scale_factor):
+    center = center_of_bounds(bounds)
+    results = [(0, 0)] * len(bounds)
+
+    for i in range(0, len(bounds)):
+        bound = bounds[i]
+        direction = [float(bound[0]) - center[0], float(bound[1]) - center[1]]
+        direction_scaled = [x * scale_factor for x in direction]
+        results[i] = (int(center[0] + direction_scaled[0]), int(center[1] + direction_scaled[1]))
+
+    return results
+
+def center_of_bounds(bounds):
+    x_values = [bound[0] for bound in bounds]
+    y_values = [bound[1] for bound in bounds]
+
+    x_mean = float(sum(x_values))/float(len(x_values))
+    y_mean = float(sum(y_values))/float(len(y_values))
+
+    return [x_mean, y_mean]
