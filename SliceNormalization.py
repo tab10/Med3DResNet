@@ -3,9 +3,21 @@ from matplotlib.path import Path
 from skimage.transform import ProjectiveTransform
 import pydicom
 import MathUtil
+from matplotlib.path import Path
+import cv2
 
-def crop_and_normalize_slice(slice_pixel_array, crop_bounds, desired_width, desired_height):
-    result = np.zeros((desired_height, desired_width, 1))
+def normalize_slice_affine(slice_pixel_array, crop_bounds, landmark_bounds, desired_width, desired_height):
+    mask = np.zeros(slice_pixel_array.shape)
+    crop_corners = np.array([[crop_bounds[0], crop_bounds[1], crop_bounds[2], crop_bounds[3]]], dtype=np.int32)
+    cv2.fillConvexPoly(mask, crop_corners, 1)
+    result = np.where(mask == 1, slice_pixel_array, slice_pixel_array.min())
+    result = result[landmark_bounds[1][0]:landmark_bounds[1][1] + 1,
+                   landmark_bounds[0][0]:landmark_bounds[0][1] + 1]
+    result = cv2.resize(result, (desired_height, desired_width), cv2.INTER_LINEAR)
+    return result
+
+def normalize_slice_projection(slice_pixel_array, crop_bounds, desired_width, desired_height):
+    result = np.zeros((desired_height, desired_width))
     #Crop bounds must be converted from (x, y) points to (y, x) points
     source_bounds = np.asarray([[0, 0], [0, desired_width], [desired_height, desired_width], [desired_height, 0]])
     destination_bounds = np.asarray([[crop_bounds[0][1], crop_bounds[0][0]], [crop_bounds[1][1], crop_bounds[1][0]],
