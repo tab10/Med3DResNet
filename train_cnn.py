@@ -77,7 +77,7 @@ def train_neural_network(x):
 
 		successful_runs = 0
 		total_runs = 0
-
+		
 		for epoch in range(hm_epochs):
 			epoch_loss = 0
 			for data in train_data:
