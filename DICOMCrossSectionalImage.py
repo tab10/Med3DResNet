@@ -11,7 +11,8 @@ class DICOMCrossSectionalImage:
         self.slice_shape = self.dicom_slices[0].pixel_array.shape
         self.slice_count = len(self.dicom_slices)
         self.shape = [self.slice_shape[0], self.slice_shape[1], self.slice_count]
-        self.global_min = min(self.dicom_slices, key=lambda slice: slice.pixel_array.min()).pixel_array.min()
+        self.global_min = MathUtil.second_min(
+            min(self.dicom_slices, key=lambda slice: MathUtil.second_min(slice.pixel_array)).pixel_array)
         self.global_max = max(self.dicom_slices, key=lambda slice: slice.pixel_array.max()).pixel_array.max()
 
         self.superior_slice = 0
@@ -28,25 +29,39 @@ class DICOMCrossSectionalImage:
         return self.dicom_slices[slice_idx]
 
     def get_slice_bounds(self, slice_idx):
+        interpolant = 0.0
+        if self.superior_slice <= slice_idx <= self.inferior_slice:
+            interpolant = MathUtil.point_interpolant_1d(slice_idx, self.superior_slice, self.inferior_slice)
+        return self.get_slice_bounds_from_interpolant(interpolant)
+
+
+    def get_slice_bounds_from_interpolant(self, interpolant):
         bounds = [(0, 0)] * 4
         scaled_superior_landmarks = self.heart_landmarks.get_scaled_superior(self.landmark_scale_factor)
         scaled_inferior_landmarks = self.heart_landmarks.get_scaled_inferior(self.landmark_scale_factor)
-        if self.superior_slice <= slice_idx <= self.inferior_slice:
-            interp_factor = MathUtil.point_interpolant_1d(slice_idx, self.superior_slice, self.inferior_slice)
-            bounds[0] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[0], scaled_inferior_landmarks[0],
-                                                       interp_factor)
-            bounds[1] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[1], scaled_inferior_landmarks[1],
-                                                       interp_factor)
-            bounds[2] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[2], scaled_inferior_landmarks[2],
-                                                       interp_factor)
-            bounds[3] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[3], scaled_inferior_landmarks[3],
-                                                       interp_factor)
+
+        bounds[0] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[0], scaled_inferior_landmarks[0],
+                                                   interpolant)
+        bounds[1] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[1], scaled_inferior_landmarks[1],
+                                                   interpolant)
+        bounds[2] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[2], scaled_inferior_landmarks[2],
+                                                   interpolant)
+        bounds[3] = MathUtil.linear_interpolate_2d(scaled_superior_landmarks[3], scaled_inferior_landmarks[3],
+                                                   interpolant)
 
         bounds[0] = (max(bounds[0][0], 0), max(bounds[0][1], 0))
-        bounds[1] = (min(bounds[1][0], self.shape[1]-1), max(bounds[1][1], 0))
-        bounds[2] = (min(bounds[2][0], self.shape[1]-1), min(bounds[2][1], self.shape[0]-1))
-        bounds[3] = (max(bounds[3][0], 0), min(bounds[3][1], self.shape[0]-1))
+        bounds[1] = (min(bounds[1][0], self.shape[1] - 1), max(bounds[1][1], 0))
+        bounds[2] = (min(bounds[2][0], self.shape[1] - 1), min(bounds[2][1], self.shape[0] - 1))
+        bounds[3] = (max(bounds[3][0], 0), min(bounds[3][1], self.shape[0] - 1))
+
         return bounds
+
+    def get_landmark_bounds(self):
+        scaled_landmarks = self.get_slice_bounds(self.superior_slice) + self.get_slice_bounds(self.inferior_slice)
+        x_values = [landmark[0] for landmark in scaled_landmarks]
+        y_values = [landmark[1] for landmark in scaled_landmarks]
+
+        return [[min(x_values), max(x_values)], [min(y_values), max(y_values)]]
 
     def reverse_slices(self):
         self.dicom_slices.reverse()
