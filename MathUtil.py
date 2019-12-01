@@ -43,7 +43,10 @@ def scale_matrix(matrix, min_val, max_val, global_min=None, global_max=None):
         global_min = matrix.min()
     if global_max is None:
         global_max = matrix.max()
+
     float_matrix = matrix.astype(np.float64)
+    float_matrix = np.where(float_matrix < global_min, global_min, float_matrix)
+    float_matrix = np.where(float_matrix > global_max, global_max, float_matrix)
     float_matrix = (float_matrix - float(global_min))/(float(global_max) - float(global_min))
     float_matrix = (float_matrix * (max_val - min_val)) + min_val
     res_matrix = float_matrix.astype(np.uint8)
@@ -70,3 +73,8 @@ def center_of_bounds(bounds):
     y_mean = float(sum(y_values))/float(len(y_values))
 
     return [x_mean, y_mean]
+
+def second_min(array):
+    min = array.min()
+    temp_array = np.where(array == min, array.max(), array)
+    return temp_array.min()

@@ -11,7 +11,8 @@ class DICOMCrossSectionalImage:
         self.slice_shape = self.dicom_slices[0].pixel_array.shape
         self.slice_count = len(self.dicom_slices)
         self.shape = [self.slice_shape[0], self.slice_shape[1], self.slice_count]
-        self.global_min = min(self.dicom_slices, key=lambda slice: slice.pixel_array.min()).pixel_array.min()
+        self.global_min = MathUtil.second_min(
+            min(self.dicom_slices, key=lambda slice: MathUtil.second_min(slice.pixel_array)).pixel_array)
         self.global_max = max(self.dicom_slices, key=lambda slice: slice.pixel_array.max()).pixel_array.max()
 
         self.superior_slice = 0
