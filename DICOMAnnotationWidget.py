@@ -27,7 +27,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
 
-        self.superior_slice_adjuster_label = QLabel("Superior Slice")
+        self.superior_slice_adjuster_label = QLabel("Superior Slice (Main Pulmonary Artery Level)")
         self.superior_slice_adjuster = QSpinBox()
         self.superior_slice_adjuster.setMinimum(0)
         self.superior_slice_adjuster.setMaximum(0)
@@ -35,7 +35,7 @@ class DICOMAnnotationWidget(QWidget):
         self.view_to_superior_button = QPushButton("Set to view slice")
         self.view_to_superior_button.clicked.connect(self.on_view_to_superior_button_clicked)
 
-        self.inferior_slice_adjuster_label = QLabel("Inferior Slice")
+        self.inferior_slice_adjuster_label = QLabel("Inferior Slice (Low Cardiac Level)")
         self.inferior_slice_adjuster = QSpinBox()
         self.inferior_slice_adjuster.setMinimum(0)
         self.inferior_slice_adjuster.setMaximum(0)
@@ -140,7 +140,8 @@ class DICOMAnnotationWidget(QWidget):
             return
 
         DataExport.export_annotations(dir_path, self.cross_sectional_image)
-        DataExport.export_normalized_slices(dir_path, self.cross_sectional_image, 256, 256, 256)
+        DataExport.export_normalized_slices_affine(dir_path, self.cross_sectional_image, 256, 256, 256)
+        DataExport.export_normalized_slices_projected(dir_path, self.cross_sectional_image, 256, 256, 256)
 
     @pyqtSlot()
     def on_view_slice_adjuster_changed(self):
