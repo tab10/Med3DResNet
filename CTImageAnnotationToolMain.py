@@ -7,7 +7,7 @@ def main():
     app = QApplication([])
     app.setApplicationName("DICOM Image Annotation Tool")
     window = DICOMAnnotationWidget()
-    window.show()
+    window.show()xdfbdfbdfbd
     app.exec_()
 
 if __name__ == '__main__':
