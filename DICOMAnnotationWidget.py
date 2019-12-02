@@ -5,7 +5,7 @@ from XYSpinnerComboWidget import XYSpinnerComboWidget
 from ViewSliceWidget import ViewSliceWidget
 from ViewSliceDataWidget import ViewSliceDataWidget
 from DICOMCrossSectionalImage import DICOMCrossSectionalImage
-import DICOMSliceReader
+import DataReader
 import DataExport
 import os
 import math
@@ -21,9 +21,15 @@ class DICOMAnnotationWidget(QWidget):
         self.image_directory_button = QPushButton("Select Image Directory", self)
         self.image_directory_button.clicked.connect(self.on_image_directory_button_clicked)
 
-        self.export_button = QPushButton("Export Annotations", self)
-        self.export_button.clicked.connect(self.on_export_button_clicked)
-        self.export_button.setEnabled(False)
+        self.export_annotations_button = QPushButton("Export Annotations", self)
+        self.export_annotations_button.clicked.connect(self.on_export_annotations_button_clicked)
+        self.export_annotations_button.setEnabled(False)
+
+        self.import_annotations_button = QPushButton("Import Annotations", self)
+        self.import_annotations_button.clicked.connect(self.on_import_annotations_button_clicked)
+
+        self.batch_export_3d_arrays_button = QPushButton("Batch Export 3D Arrays", self)
+        self.batch_export_3d_arrays_button.clicked.connect(self.on_batch_export_3d_arrays_button_clicked)
 
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
@@ -47,6 +53,7 @@ class DICOMAnnotationWidget(QWidget):
         self.slice_scale_label = QLabel("Boundary Slice Scale")
         self.slice_scale_adjuster = QDoubleSpinBox()
         self.slice_scale_adjuster.setMinimum(0.0)
+        self.slice_scale_adjuster.setSingleStep(0.1)
         self.slice_scale_adjuster.valueChanged.connect(self.on_slice_scale_adjuster_changed)
 
         self.landmark_select_label = QLabel("Select a heart landmark to position")
@@ -108,13 +115,15 @@ class DICOMAnnotationWidget(QWidget):
         tools_grid_layout.setColumnStretch(0, 1)
         tools_grid_layout.addWidget(self.image_directory_button, 0, 0)
         tools_grid_layout.setColumnStretch(1, 1)
-        tools_grid_layout.addWidget(self.export_button, 0, 1)
-        tools_grid_layout.addWidget(self.view_slice_adjuster, 1, 0)
-        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 1, 1)
-        tools_grid_layout.addLayout(landmark_select_vertical_layout, 2, 0)
-        tools_grid_layout.addWidget(self.landmark_position_adjuster, 2, 1)
-        tools_grid_layout.addWidget(self.reset_landmarks_button, 3, 0)
-        tools_grid_layout.addWidget(self.reverse_slices_button, 3, 1)
+        tools_grid_layout.addWidget(self.export_annotations_button, 0, 1)
+        tools_grid_layout.addWidget(self.import_annotations_button, 1, 0)
+        tools_grid_layout.addWidget(self.batch_export_3d_arrays_button, 1, 1)
+        tools_grid_layout.addWidget(self.view_slice_adjuster, 2, 0)
+        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 2, 1)
+        tools_grid_layout.addLayout(landmark_select_vertical_layout, 3, 0)
+        tools_grid_layout.addWidget(self.landmark_position_adjuster, 3, 1)
+        tools_grid_layout.addWidget(self.reset_landmarks_button, 4, 0)
+        tools_grid_layout.addWidget(self.reverse_slices_button, 4, 1)
 
         vertical_layout.setAlignment(Qt.AlignCenter)
         vertical_layout.addLayout(tools_grid_layout)
@@ -128,28 +137,45 @@ class DICOMAnnotationWidget(QWidget):
         if not dir_name:
             return
 
-        dicom_slices = DICOMSliceReader.read_3d_slices_from_dir(dir_name)
+        dicom_slices = DataReader.read_3d_slices_from_dir(dir_name)
         if len(dicom_slices) <= 1:
             self.showInvalidDirectoryMessageBox()
             return
 
-        self.cross_sectional_image = DICOMCrossSectionalImage(dicom_slices)
+        self.cross_sectional_image = DICOMCrossSectionalImage(dir_name, dicom_slices)
 
-        self.export_button.setEnabled(True)
+        self.export_annotations_button.setEnabled(True)
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_view_slice_widget()
         self.update_view_slice_data_widget()
 
     @pyqtSlot()
-    def on_export_button_clicked(self):
+    def on_export_annotations_button_clicked(self):
         dir_path = QFileDialog.getExistingDirectory(self, 'Select directory to create annotation file', 'c:\\')
         if not dir_path:
             return
 
         DataExport.export_annotations(dir_path, self.cross_sectional_image)
-        DataExport.export_normalized_slices_affine(dir_path, self.cross_sectional_image, 256, 256, 256)
-        DataExport.export_normalized_slices_projected(dir_path, self.cross_sectional_image, 256, 256, 256)
+
+    @pyqtSlot()
+    def on_import_annotations_button_clicked(self):
+        file_path = QFileDialog.getOpenFileName(self, 'Select annotation file to import', 'c:\\')[0]
+        self.cross_sectional_image = DataReader.cross_sectional_image_from_annotation_file(file_path)
+
+        self.export_annotations_button.setEnabled(True)
+        self.view_slice_data_widget.setEnabled(True)
+        self.reset_controls()
+        self.update_view_slice_widget()
+        self.update_view_slice_data_widget()
+
+    @pyqtSlot()
+    def on_batch_export_3d_arrays_button_clicked(self):
+        dir_path = QFileDialog.getExistingDirectory(self, 'Select annotation file directory', 'c:\\')
+        if not dir_path:
+            return
+
+        DataExport.batch_export_annotations_to_3d_arrays(dir_path, 256, 256, 256)
 
     @pyqtSlot()
     def on_view_slice_adjuster_changed(self):

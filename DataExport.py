@@ -1,34 +1,42 @@
-from DICOMCrossSectionalImage import DICOMCrossSectionalImage
 import SliceNormalization
 import os
 import numpy as np
 import json
 from scipy.ndimage import zoom
 import cv2
+import DataReader
 import MathUtil
 
 def export_annotations(dir_path, cross_sectional_image):
-    file_name = os.path.join(dir_path, cross_sectional_image.patient_id + "_annotations.txt")
+    file_name = os.path.join(dir_path, cross_sectional_image.patient_id + ".annotations")
     file = open(file_name, 'w')
     data = {}
-    data['slices'] = []
-
-    for slice_idx in range(cross_sectional_image.superior_slice, cross_sectional_image.inferior_slice + 1):
-        slice_bounds = cross_sectional_image.get_slice_bounds(slice_idx)
-        file_name = os.path.basename(cross_sectional_image.get_slice(slice_idx).filename)
-        pixel_data = cross_sectional_image.get_slice(slice_idx).pixel_array
-
-        data['slices'].append({
-            'slice_index': slice_idx,
-            'file_name': file_name,
-            'bounds': slice_bounds
-        })
+    data['dir_path'] = cross_sectional_image.dir_path
+    data['superior_slice'] = cross_sectional_image.superior_slice
+    data['inferior_slice'] = cross_sectional_image.inferior_slice
+    data['landmarks'] = cross_sectional_image.heart_landmarks.landmarks
+    data['landmark_scale_factor'] = cross_sectional_image.landmark_scale_factor
 
     json.dump(data, file, indent=4)
     file.close()
 
+def batch_export_annotations_to_3d_arrays(dir_path, desired_width, desired_height, desired_depth):
+    dir_files = os.listdir(dir_path)
+
+    for file_name in dir_files:
+        file_ext = os.path.splitext(file_name)[1]
+        file_path = os.path.join(dir_path, file_name)
+
+        if file_ext == '.annotations':
+            cross_sectional_image = DataReader.cross_sectional_image_from_annotation_file(file_path)
+
+            export_normalized_slices_affine(dir_path, cross_sectional_image, desired_width, desired_height,
+                                            desired_depth)
+            export_normalized_slices_projected(dir_path, cross_sectional_image, desired_width, desired_height,
+                                               desired_depth)
+
 def export_normalized_slices_projected(dir_path, cross_sectional_image, desired_width, desired_height, desired_depth):
-    print("exporting normalized 3d image (projection)")
+    print(f"exporting normalized 3d image (projection) for {cross_sectional_image.patient_id}")
     num_crop_slices = cross_sectional_image.inferior_slice + 1 - cross_sectional_image.superior_slice
     result = np.zeros((num_crop_slices, desired_height, desired_width), np.int16)
 
@@ -53,7 +61,7 @@ def export_normalized_slices_projected(dir_path, cross_sectional_image, desired_
     print("normalized 3d image exported")
 
 def export_normalized_slices_affine(dir_path, cross_sectional_image, desired_width, desired_height, desired_depth):
-    print("exporting normalized 3d image (affine)")
+    print(f"exporting normalized 3d image (affine) for {cross_sectional_image.patient_id}")
     num_crop_slices = cross_sectional_image.inferior_slice + 1 - cross_sectional_image.superior_slice
     slice_stack = np.zeros((num_crop_slices, cross_sectional_image.shape[0], cross_sectional_image.shape[1]),
                            np.int16)

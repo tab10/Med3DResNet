@@ -5,7 +5,7 @@ from PyQt5.Qt import *
 class XYSpinnerComboWidget(QWidget):
     value_changed = pyqtSignal()
 
-    def __init__(self, name="", default_coords=(0, 0), bounds=(100,100), parent=None):
+    def __init__(self, name="", default_coords=[0, 0], bounds=(100,100), parent=None):
         QWidget.__init__(self, parent=parent)
 
         self.bounds = bounds
@@ -46,7 +46,7 @@ class XYSpinnerComboWidget(QWidget):
 
     @pyqtSlot()
     def on_value_changed(self):
-        self.cur_coords = (self.x_spinner.value(), self.y_spinner.value())
+        self.cur_coords = [self.x_spinner.value(), self.y_spinner.value()]
 
         self.value_changed.emit()
 
