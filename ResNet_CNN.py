@@ -7,9 +7,10 @@ import numpy as np
 import glob
 import os
 import argparse
+import csv
 
 
-def load_data(path, print_mod=10, flag='affine'):
+def load_data(path, flag='affine'):
 	"""
 	INPUTS:
 	:path: 
@@ -23,27 +24,30 @@ def load_data(path, print_mod=10, flag='affine'):
 	test_images = []
 
 	print("Loading diagnostic truth class labels...")  # these are the diagnostic truth
-	
-	train_labels = np.loadtxt("acv_train_labels.csv", skiprows=1, usecols=(0, 1))
-	test_labels = np.loadtxt("acv_test_labels.csv", skiprows=1, usecols=(0, 1))
+
+	with open("acv_train_labels.csv", "r") as f:
+		reader = csv.reader(f)
+		train_labels = list(reader)[1:]
+	f.close()
+
+	with open("acv_test_labels.csv", "r") as f:
+		reader = csv.reader(f)
+		test_labels = list(reader)[1:]
+	f.close()
 
 	# sort image data into train/test data according to keys from .csv files
 	print("Loading/sorting image data into test/train split from .csv files...")
 	print("Loading %s images..." % flag)
-	for i in range(len(train_labels[0])):
-		if i % int(len(train_labels[0]) / print_mod) == 0:
-			print("Loading train image %d of %d..." % (i + 1, len(train_labels[0])))
-		train_image_temp = np.load("%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, train_labels[0][i], flag))
+	for i in range(len(train_labels)):
+		train_image_temp = np.load("%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, train_labels[i][0], flag))
 		train_images.append(np.squeeze(train_image_temp))
-	for i in range(len(test_labels[0])):
-		if i % int(len(test_labels[0]) / print_mod) == 0:
-			print("Loading test image %d of %d..." % (i + 1, len(test_labels[0])))
+	for i in range(len(test_labels)):
 		test_image_temp = np.load(
-			"%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, test_labels[0][i], flag))
+			"%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, test_labels[i][0], flag))
 		test_images.append(np.squeeze(test_image_temp))
 
-	train_classes = train_labels[1]
-	test_classes = test_labels[1]
+	train_classes = [int(i) for i in train_labels[i][1]]
+	test_classes = [int(i) for i in test_labels[i][1]]
 
 	return train_images, test_images, train_classes, test_classes
 
@@ -90,8 +94,8 @@ def build_cnn(x):
 
 def train_cnn(x):
 	prediction = build_cnn(x)
-	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, y))
-	optimizer = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(cost)
+	cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=train_classes, logits=prediction))
+	optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=1e-3).minimize(cost)
 
 	hm_epochs = 10
 	with tf.Session() as sess:
@@ -138,10 +142,14 @@ if __name__ == "__main__":
 	SLICE_COUNT = 256
 	n_classes = 4
 	batch_size = 157  # total number of ct data arrays, for nn normalization
+
+	work_path = "/Volumes/APPLE SSD"
 	data_path = "acv_image_data"  # subfolder from ran dir where images are stored
 	flag = 'affine'  # train CNN on these images
 	keep_rate = 0.8
 	###########################################
+
+	os.chdir(work_path)
 
 	x = tf.placeholder('float')
 	y = tf.placeholder('float')
