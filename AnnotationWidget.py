@@ -17,22 +17,6 @@ class AnnotationWidget(QWidget):
         self.cross_sectional_image = None
         self.view_slice = 0
 
-        self.image_directory_button = QPushButton("Select Image Directory", self)
-        self.image_directory_button.clicked.connect(self.on_image_directory_button_clicked)
-
-        self.export_annotations_button = QPushButton("Export Annotations", self)
-        self.export_annotations_button.clicked.connect(self.on_export_annotations_button_clicked)
-        self.export_annotations_button.setEnabled(False)
-
-        self.import_annotations_button = QPushButton("Import Annotations", self)
-        self.import_annotations_button.clicked.connect(self.on_import_annotations_button_clicked)
-
-        self.batch_export_3d_arrays_button = QPushButton("Batch Export Annotations to 3D Arrays", self)
-        self.batch_export_3d_arrays_button.clicked.connect(self.on_batch_export_3d_arrays_button_clicked)
-
-        self.batch_mask_3d_arrays_button = QPushButton("Batch Mask 3D Arrays", self)
-        self.batch_mask_3d_arrays_button.clicked.connect(self.on_batch_mask_3d_arrays_button_clicked)
-
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
 
@@ -77,12 +61,6 @@ class AnnotationWidget(QWidget):
         self.landmark_position_adjuster.value_changed.connect(self.on_landmark_position_adjuster_changed)
         self.landmark_position_adjuster.setEnabled(False)
 
-        self.reset_landmarks_button = QPushButton("Reset Landmarks")
-        self.reset_landmarks_button.clicked.connect(self.on_reset_landmarks_button_clicked)
-
-        self.reverse_slices_button = QPushButton("Reverse Slices")
-        self.reverse_slices_button.clicked.connect(self.on_reverse_slices_button_clicked)
-
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
         self.view_slice_widget.mouse_moved.connect(self.on_view_slice_widget_mouse_move)
@@ -115,18 +93,11 @@ class AnnotationWidget(QWidget):
         landmark_select_vertical_layout.addWidget(self.landmark_select_combo_box)
 
         tools_grid_layout.setColumnStretch(0, 1)
-        tools_grid_layout.addWidget(self.image_directory_button, 0, 0)
+        tools_grid_layout.addWidget(self.view_slice_adjuster, 0, 0)
         tools_grid_layout.setColumnStretch(1, 1)
-        tools_grid_layout.addWidget(self.export_annotations_button, 0, 1)
-        tools_grid_layout.addWidget(self.import_annotations_button, 1, 0)
-        tools_grid_layout.addWidget(self.batch_export_3d_arrays_button, 1, 1)
-        tools_grid_layout.addWidget(self.batch_mask_3d_arrays_button, 2, 1)
-        tools_grid_layout.addWidget(self.view_slice_adjuster, 3, 0)
-        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 3, 1)
-        tools_grid_layout.addLayout(landmark_select_vertical_layout, 4, 0)
-        tools_grid_layout.addWidget(self.landmark_position_adjuster, 4, 1)
-        tools_grid_layout.addWidget(self.reset_landmarks_button, 5, 0)
-        tools_grid_layout.addWidget(self.reverse_slices_button, 5, 1)
+        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 0, 1)
+        tools_grid_layout.addLayout(landmark_select_vertical_layout, 1, 0)
+        tools_grid_layout.addWidget(self.landmark_position_adjuster, 1, 1)
 
         vertical_layout.setAlignment(Qt.AlignCenter)
         vertical_layout.addLayout(tools_grid_layout)
@@ -155,6 +126,9 @@ class AnnotationWidget(QWidget):
 
     @pyqtSlot()
     def on_export_annotations_button_clicked(self):
+        if self.cross_sectional_image is None:
+            return
+
         dir_path = QFileDialog.getExistingDirectory(self, 'Select directory to create annotation file', 'c:\\')
         if not dir_path:
             return
