@@ -1,9 +1,14 @@
 # based on package from https://github.com/taki0112/ResNet-Tensorflow
 # Tim Burt 12/8/19
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-import os
+
+# append to lines above
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
+
 from keras.datasets import cifar10, cifar100, mnist, fashion_mnist
 from keras.utils import to_categorical
 import numpy as np
@@ -11,6 +16,9 @@ import random
 from scipy import misc
 import csv
 from visualization import *
+
+# append to lines above
+tf.logging.set_verbosity(tf.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
 
 
 def _update_hu_range_(img, cur_min, cur_max):
@@ -196,7 +204,7 @@ def load_tiny() :
 	return X_train, y_train, X_test, y_test
 
 
-def load_ACV(data_folder, flag='affine', lungmask=True):
+def load_ACV(data_folder, z_slice, n_slice_blocks, flag='affine', lungmask=True):
 	"""
 	INPUTS:
 	:data_folder:
@@ -209,8 +217,8 @@ def load_ACV(data_folder, flag='affine', lungmask=True):
 	train_data = []
 	test_data = []
 
-	train_labels = []
-	test_labels = []
+	train_labels_list = []
+	test_labels_list = []
 
 	offset = 2048  # Offsetting the grayscale values by 2048 HU units to make all values positive. (int16)
 
@@ -250,7 +258,7 @@ def load_ACV(data_folder, flag='affine', lungmask=True):
 			train_image_temp += offset
 			MIN_HU, MAX_HU = _update_hu_range_(train_image_temp, MIN_HU, MAX_HU)
 			train_data.append(np.squeeze(train_image_temp))
-		train_labels.append(int(train_labels[i][1]))
+		train_labels_list.append(int(train_labels[i][1]))
 	for i in range(len(test_labels)):
 		test_image_temp = np.load(
 			"%s/%s_images/%s_normalized_3d_%s.npy" % (data_folder, flag, test_labels[i][0], flag))
@@ -268,18 +276,19 @@ def load_ACV(data_folder, flag='affine', lungmask=True):
 			test_image_temp += offset
 			MIN_HU, MAX_HU = _update_hu_range_(test_image_temp, MIN_HU, MAX_HU)
 			test_data.append(np.squeeze(test_image_temp))
-		test_labels.append(int(test_labels[i][1]))
+		test_labels_list.append(int(test_labels[i][1]))
 
 	n_channels = int(MAX_HU - MIN_HU + 1)
 	print("Global min HU: %d, global max HU: %d. Input image channels: 1" % (MIN_HU, MAX_HU))
 
-	train_data = np.expand_dims(train_data, axis=-1)
-	test_data = np.expand_dims(test_data, axis=-1)
+	train_data, test_data = normalize(train_data, test_data, z_slice, n_slice_blocks)
+	train_labels = np.asarray(train_labels_list)
+	test_labels = np.asarray(test_labels_list)
 
-	train_data, test_data = normalize(train_data, test_data)
+	print(train_labels.shape, train_data.shape)
 
-	#train_labels = to_categorical(train_labels, 4)
-	#test_labels = to_categorical(test_labels, 4)
+	train_labels = to_categorical(train_labels, 4)
+	test_labels = to_categorical(test_labels, 4)
 
 	seed = 777
 	np.random.seed(seed)
@@ -290,15 +299,31 @@ def load_ACV(data_folder, flag='affine', lungmask=True):
 	return train_data, train_labels, test_data, test_labels
 
 
-def normalize(X_train, X_test):
+def normalize(X_train, X_test, z_slice, n_slice_blocks):
 
-	mean = np.mean(X_train, axis=(0, 1, 2, 3, 4))
-	std = np.std(X_train, axis=(0, 1, 2, 3, 4))
+	print("Averaging z-block %d..." % z_slice)
+	z_slice_start = ((z_slice-1) * n_slice_blocks)
+	z_slice_stop = (z_slice * n_slice_blocks) - 1
+	print(z_slice_start, z_slice_stop)
+	print(np.asarray(X_train).shape)
+	print(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop].shape)
 
-	X_train = (X_train - mean) / std
-	X_test = (X_test - mean) / std
+	X_train_z_slice = np.mean(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop], axis=3)
+	X_test_z_slice = np.mean(np.asarray(X_test)[:,:,:,z_slice_start:z_slice_stop], axis=3)
 
-	return X_train, X_test
+	print(X_train_z_slice.shape)
+	print("Normalizing z-block %d..." % z_slice)
+
+	X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)
+	X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
+
+	mean = np.mean(X_train_z_slice, axis=(0, 1, 2, 3))
+	std = np.std(X_train_z_slice, axis=(0, 1, 2, 3))
+
+	X_train_z_slice = (X_train_z_slice - mean) / std
+	X_test_z_slice = (X_test_z_slice - mean) / std
+
+	return X_train_z_slice, X_test_z_slice
 
 
 def get_annotations_map():

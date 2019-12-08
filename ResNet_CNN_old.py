@@ -67,6 +67,7 @@ def load_data(path, flag='affine', lungmask=True):
 			train_image_temp += offset
 			MIN_HU, MAX_HU = _update_hu_range_(train_image_temp, MIN_HU, MAX_HU)
 			train_images.append(np.squeeze(train_image_temp))
+
 		train_classes.append(int(train_labels[i][1]))
 	for i in range(len(test_labels)):
 		test_image_temp = np.load(

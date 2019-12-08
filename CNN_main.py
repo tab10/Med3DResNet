@@ -79,19 +79,19 @@ def main():
 		# show network architecture
 		show_all_variables()
 
-		print("Z-slice %d of %d-ResNet CNN...")
+		print("Z-slice %d of %d-ResNet CNN..." % (args.z_slice, args.n_slice_blocks))
 
 		if args.phase == 'train' :
 			# launch the graph in a session
-			cnn.train(args.z_slice)
+			cnn.train()
 
 			print(" [*] Training finished! \n")
 
-			cnn.test(args.z_slice)
+			cnn.test()
 			print(" [*] Test finished!")
 
 		if args.phase == 'test' :
-			cnn.test(args.z_slice)
+			cnn.test()
 			print(" [*] Test finished!")
 
 if __name__ == '__main__':

@@ -45,7 +45,10 @@ class ResNet(object):
 			self.label_dim = 200
 
 		if self.dataset_name == 'ACV':
-			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(data_folder=args.data_folder, flag=args.data_type, lungmask=args.lung_mask)
+			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(z_slice=args.z_slice,
+			                                                                n_slice_blocks=args.n_slice_blocks,
+			                                                                data_folder=args.data_folder, flag=args.data_type,
+			                                                                lungmask=args.lung_mask)
 			self.img_size = 256  # 3D
 			self.c_dim = 1  # greyscale
 			self.label_dim = 4
@@ -157,7 +160,7 @@ class ResNet(object):
 	# Train
 	##################################################################################
 
-	def train(self, z_slice):
+	def train(self):
 		# initialize all variables
 		tf.global_variables_initializer().run()
 
@@ -264,7 +267,7 @@ class ResNet(object):
 			print(" [*] Failed to find a checkpoint")
 			return False, 0
 
-	def test(self, z_slice):
+	def test(self):
 		tf.global_variables_initializer().run()
 
 		self.saver = tf.train.Saver()

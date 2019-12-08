@@ -1,8 +1,13 @@
 # based on package from https://github.com/taki0112/ResNet-Tensorflow
 # Tim Burt 12/8/19
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 import tensorflow as tf
 import tensorflow.contrib as tf_contrib
+
+# append to lines above
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
 
 
 # Xavier : tf_contrib.layers.xavier_initializer()
