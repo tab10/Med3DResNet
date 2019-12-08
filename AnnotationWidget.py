@@ -118,7 +118,6 @@ class AnnotationWidget(QWidget):
 
         self.cross_sectional_image = DICOMCrossSectionalImage(dir_name, dicom_slices)
 
-        self.export_annotations_button.setEnabled(True)
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_view_slice_widget()
@@ -140,7 +139,6 @@ class AnnotationWidget(QWidget):
         file_path = QFileDialog.getOpenFileName(self, 'Select annotation file to import', 'c:\\')[0]
         self.cross_sectional_image = DataReader.cross_sectional_image_from_annotation_file(file_path)
 
-        self.export_annotations_button.setEnabled(True)
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_view_slice_widget()
