@@ -1,7 +1,5 @@
-from PyQt5.QtWidgets import QLabel
 from PyQt5.Qt import *
 import cv2
-import numpy as np
 import MathUtil
 
 class ViewSliceWidget(QLabel):

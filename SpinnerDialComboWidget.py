@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLabel, QPushButton, QSpinBox, QDial, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QLabel, QSpinBox, QDial, QWidget, QVBoxLayout
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 class SpinnerDialComboWidget(QWidget):

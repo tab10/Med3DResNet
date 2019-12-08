@@ -1,5 +1,3 @@
-from PyQt5.QtWidgets import QLabel, QSpinBox, QDial, QWidget, QVBoxLayout, QHBoxLayout
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.Qt import *
 
 class XYSpinnerComboWidget(QWidget):

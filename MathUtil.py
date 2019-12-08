@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 def point_interpolant_1d(val, min_val, max_val):
     return (float(val) - float(min_val)) / (float(max_val) - float(min_val))

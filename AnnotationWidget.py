@@ -1,5 +1,5 @@
 from PyQt5.Qt import *
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QComboBox, QFileDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QPushButton, QComboBox, QFileDialog
 from SpinnerDialComboWidget import SpinnerDialComboWidget
 from XYSpinnerComboWidget import XYSpinnerComboWidget
 from ViewSliceWidget import ViewSliceWidget
@@ -8,9 +8,8 @@ from DICOMCrossSectionalImage import DICOMCrossSectionalImage
 import DataReader
 import DataExport
 import os
-import math
 
-class DICOMAnnotationWidget(QWidget):
+class AnnotationWidget(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
@@ -28,8 +27,11 @@ class DICOMAnnotationWidget(QWidget):
         self.import_annotations_button = QPushButton("Import Annotations", self)
         self.import_annotations_button.clicked.connect(self.on_import_annotations_button_clicked)
 
-        self.batch_export_3d_arrays_button = QPushButton("Batch Export 3D Arrays", self)
+        self.batch_export_3d_arrays_button = QPushButton("Batch Export Annotations to 3D Arrays", self)
         self.batch_export_3d_arrays_button.clicked.connect(self.on_batch_export_3d_arrays_button_clicked)
+
+        self.batch_mask_3d_arrays_button = QPushButton("Batch Mask 3D Arrays", self)
+        self.batch_mask_3d_arrays_button.clicked.connect(self.on_batch_mask_3d_arrays_button_clicked)
 
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
@@ -118,12 +120,13 @@ class DICOMAnnotationWidget(QWidget):
         tools_grid_layout.addWidget(self.export_annotations_button, 0, 1)
         tools_grid_layout.addWidget(self.import_annotations_button, 1, 0)
         tools_grid_layout.addWidget(self.batch_export_3d_arrays_button, 1, 1)
-        tools_grid_layout.addWidget(self.view_slice_adjuster, 2, 0)
-        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 2, 1)
-        tools_grid_layout.addLayout(landmark_select_vertical_layout, 3, 0)
-        tools_grid_layout.addWidget(self.landmark_position_adjuster, 3, 1)
-        tools_grid_layout.addWidget(self.reset_landmarks_button, 4, 0)
-        tools_grid_layout.addWidget(self.reverse_slices_button, 4, 1)
+        tools_grid_layout.addWidget(self.batch_mask_3d_arrays_button, 2, 1)
+        tools_grid_layout.addWidget(self.view_slice_adjuster, 3, 0)
+        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 3, 1)
+        tools_grid_layout.addLayout(landmark_select_vertical_layout, 4, 0)
+        tools_grid_layout.addWidget(self.landmark_position_adjuster, 4, 1)
+        tools_grid_layout.addWidget(self.reset_landmarks_button, 5, 0)
+        tools_grid_layout.addWidget(self.reverse_slices_button, 5, 1)
 
         vertical_layout.setAlignment(Qt.AlignCenter)
         vertical_layout.addLayout(tools_grid_layout)
@@ -176,6 +179,14 @@ class DICOMAnnotationWidget(QWidget):
             return
 
         DataExport.batch_export_annotations_to_3d_arrays(dir_path, 256, 256, 256)
+
+    @pyqtSlot()
+    def on_batch_mask_3d_arrays_button_clicked(self):
+        dir_path = QFileDialog.getExistingDirectory(self, 'Select annotation file directory', 'c:\\')
+        if not dir_path:
+            return
+
+        DataExport.batch_mask_3d_arrays(dir_path)
 
     @pyqtSlot()
     def on_view_slice_adjuster_changed(self):

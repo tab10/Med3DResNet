@@ -9,7 +9,7 @@ from skimage import morphology
 from sklearn.cluster import KMeans
 
 
-def _update_hu_range_(img, cur_min, cur_max):
+def update_hu_range(img, cur_min, cur_max):
 	local_min_hu = np.amin(img)
 	local_max_hu = np.amax(img)
 	if local_min_hu < cur_min:
