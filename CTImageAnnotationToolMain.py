@@ -1,12 +1,12 @@
 #This file should be the entry point for the CT image annotation tool
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog
-from DICOMAnnotationWidget import DICOMAnnotationWidget
+from PyQt5.QtWidgets import QApplication
+from AnnotationWidget import AnnotationWidget
 
 
 def main():
     app = QApplication([])
     app.setApplicationName("DICOM Image Annotation Tool")
-    window = DICOMAnnotationWidget()
+    window = AnnotationWidget()
     window.show()
     app.exec_()
 
