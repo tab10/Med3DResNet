@@ -9,6 +9,16 @@ from skimage import morphology
 from sklearn.cluster import KMeans
 
 
+def _update_hu_range_(img, cur_min, cur_max):
+	local_min_hu = np.amin(img)
+	local_max_hu = np.amax(img)
+	if local_min_hu < cur_min:
+		cur_min = local_min_hu
+	if local_max_hu > cur_max:
+		cur_max = local_max_hu
+	return cur_min, cur_max
+
+
 def apply_lungmask(img, mask):
 	"""Applies erode/dilate mask to image to remove lungs"""
 	img_shape = img.shape  # should be 256x256
