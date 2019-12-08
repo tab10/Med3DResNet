@@ -57,6 +57,7 @@ class ResNet(object):
 		self.log_dir = args.log_dir + "_z%d" % args.z_slice
 
 		self.res_n = args.res_n
+		self.z_slice = args.z_slice
 
 		self.epoch = args.epoch
 		self.batch_size = args.batch_size
@@ -242,7 +243,7 @@ class ResNet(object):
 
 	@property
 	def model_dir(self):
-		return "{}{}_{}_{}_{}".format(self.model_name, self.res_n, self.dataset_name, self.batch_size, self.init_lr)
+		return "{}{}_{}_{}_{}_{}".format(self.model_name, self.res_n, self.z_slice, self.dataset_name, self.batch_size, self.init_lr)
 
 	def save(self, checkpoint_dir, step):
 		checkpoint_dir = os.path.join(checkpoint_dir, self.model_dir)
@@ -257,6 +258,7 @@ class ResNet(object):
 		checkpoint_dir = os.path.join(checkpoint_dir, self.model_dir)
 
 		ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
+		#ckpt = False # manual override
 		if ckpt and ckpt.model_checkpoint_path:
 			ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
 			self.saver.restore(self.sess, os.path.join(checkpoint_dir, ckpt_name))

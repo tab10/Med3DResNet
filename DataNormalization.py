@@ -105,7 +105,7 @@ def mask_3d_array(array):
             MIN_HU, MAX_HU = _update_hu_range_(masked_test_image_temp, MIN_HU, MAX_HU)
             test_images.append(masked_test_image_temp)'''
     result = []
-    min_hu = max_hu = 0.0
+    #min_hu = max_hu = 0.0
 
     for i in range(len(array)):
         print(f"masking slice {i + 1}/{len(array)}")
@@ -113,8 +113,9 @@ def mask_3d_array(array):
         slice_mask = visualization.make_lungmask(slice)
         masked_slice = visualization.apply_lungmask(slice, slice_mask)
         result.append(masked_slice)
-        min_hu, max_hu = visualization.update_hu_range(result, min_hu, max_hu)
+        #min_hu, max_hu = visualization.update_hu_range(result, min_hu, max_hu)
 
+    result = np.asarray(result)
     print("masking done")
     return result
 
