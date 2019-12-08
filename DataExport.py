@@ -32,11 +32,10 @@ def batch_export_annotations_to_3d_arrays(dir_path, desired_width, desired_heigh
             projection_file_name = os.path.join(dir_path,
                                                 cross_sectional_image.patient_id + "_normalized_3d_projection.npy")
 
-            affine_array = DataNormalization.normalize_cross_sectional_image_affine(dir_path, cross_sectional_image,
+            affine_array = DataNormalization.normalize_cross_sectional_image_affine(cross_sectional_image,
                                                                                     desired_width, desired_height,
                                                                                     desired_depth)
-            projection_array = DataNormalization.normalize_cross_sectional_image_projected(dir_path,
-                                                                                           cross_sectional_image,
+            projection_array = DataNormalization.normalize_cross_sectional_image_projected(cross_sectional_image,
                                                                                            desired_width,
                                                                                            desired_height,
                                                                                            desired_depth)
