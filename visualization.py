@@ -5,6 +5,45 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from glob import glob
+from skimage import morphology
+from sklearn.cluster import KMeans
+
+
+def apply_lungmask(img, mask):
+	"""Applies erode/dilate mask to image to remove lungs"""
+	img_shape = img.shape  # should be 256x256
+	#img_mask = np.ones(img_shape) * np.min(img)  # sets region outside mask to same minimum as outside crop
+	img_masked = np.ma.masked_where(mask == 1.0, img)
+	#img_mask = img[np.argwhere(mask == 1.0)]
+	return img_masked
+
+
+def make_lungmask(img):
+	row_size = img.shape[0]
+	col_size = img.shape[1]
+	mean = np.mean(img)
+	std = np.std(img)
+	img = img-mean
+	img = img/std
+	# Find the average pixel value near the lungs
+	# to renormalize washed out images
+	middle = img[int(col_size/5):int(col_size/5*4),int(row_size/5):int(row_size/5*4)]
+	mean = np.mean(middle)
+	# To improve threshold finding, I'm moving the
+	# underflow and overflow on the pixel spectrum
+	img[img==max]=mean
+	img[img==min]=mean
+	#
+	# Using Kmeans to separate foreground (soft tissue / bone) and background (lung/air)
+	#
+	kmeans = KMeans(n_clusters=5).fit(np.reshape(middle,[np.prod(middle.shape),1]))
+	centers = sorted(kmeans.cluster_centers_.flatten())
+	threshold = np.mean(centers)
+
+	thresh_img = np.where(img > threshold, 1.0, 0.0)  #  sets area outside heart to 0, inside to 1
+	eroded = morphology.erosion(thresh_img,np.ones([5,5]))
+	dilation = morphology.dilation(eroded,np.ones([8,8]))
+	return dilation
 
 
 def make_axial_movie(image, cmap, movie_fn="axial_movie_projection", fps=8):
@@ -29,7 +68,13 @@ def make_axial_movie(image, cmap, movie_fn="axial_movie_projection", fps=8):
 	os.system("ffmpeg -r %d -i slice_%%d.png -r 30 %s.mp4" % (fps, movie_fn))
 
 
-def make_axial_movie_comparison(affine_image, projection_image, cmap, movie_fn, patient_id, fps=8):
+def make_axial_movie_comparison(affine_image, projection_image, cmap, movie_fn, patient_id, fps=8, lung_mask=False):
+	if lung_mask:
+		num_plots = [2,2]
+		fig_size = [16,18]
+	else:
+		num_plots = [1,2]
+		fig_size = [16,9]
 	num_slices = affine_image.shape[0]  # assuming square and both images same size
 	
 	affine_slices = np.squeeze(affine_image)
@@ -49,9 +94,9 @@ def make_axial_movie_comparison(affine_image, projection_image, cmap, movie_fn, 
 		affine_slice = affine_slices[:][:][i]
 		projection_slice = projection_slices[:][:][i]
 
+		plt.figure(figsize=fig_size)
 		# affine plot on left
-		plt.figure(figsize=(16,9))
-		plt.subplot(1,2,1)
+		plt.subplot(num_plots[0],num_plots[1],1)
 		plt.imshow(affine_slice, cmap=plt.get_cmap(cmap), vmin=affine_min_all, vmax=affine_max_all)
 		cbar1 = plt.colorbar()
 		cbar1.ax.set_ylabel("Hounsfield Units (HU)", rotation=90)
@@ -60,7 +105,7 @@ def make_axial_movie_comparison(affine_image, projection_image, cmap, movie_fn, 
 		plt.ylabel("Y (pixels)")
 
 		# projection plot on right
-		plt.subplot(1, 2, 2)
+		plt.subplot(num_plots[0],num_plots[1],2)
 		plt.imshow(projection_slice, cmap=plt.get_cmap(cmap), vmin=projection_min_all, vmax=projection_max_all)
 		cbar2 = plt.colorbar()
 		cbar2.ax.set_ylabel("Hounsfield Units (HU)", rotation=90)
@@ -68,11 +113,27 @@ def make_axial_movie_comparison(affine_image, projection_image, cmap, movie_fn, 
 		plt.xlabel("X (pixels)")
 		plt.ylabel("Y (pixels)")
 
+		if lung_mask:
+			plt.subplot(num_plots[0],num_plots[1],3)
+			affine_mask_slice = make_lungmask(affine_slice)
+			plt.imshow(affine_mask_slice, cmap=plt.get_cmap(cmap))
+			plt.title("Affine Erosion & Dilation Mask\nAxial slice %d of %d\nPatient ID %s" % (i+1, num_slices, patient_id))
+			plt.xlabel("X (pixels)")
+			plt.ylabel("Y (pixels)")
+
+			plt.subplot(num_plots[0],num_plots[1],4)
+			projection_mask_slice = make_lungmask(projection_slice)
+			plt.imshow(projection_mask_slice, cmap=plt.get_cmap(cmap))
+			plt.title("Projection Erosion & Dilation Mask\nAxial slice %d of %d\nPatient ID %s" % (i+1, num_slices, patient_id))
+			plt.xlabel("X (pixels)")
+			plt.ylabel("Y (pixels)")
+
 		plt.savefig("slice_%d.png" % i)
 		plt.close()
 
 	print("Creating movie...")
-	os.system("ffmpeg -r %d -i slice_%%d.png -r 30 %s.mp4" % (fps, movie_fn))
+	os.system("ffmpeg -r %d -i slice_%%d.png -r 30 %s.mp4 -y" % (fps, movie_fn))
+
 
 if __name__ == '__main__':
 
@@ -80,13 +141,13 @@ if __name__ == '__main__':
 	#single_fn = "/users/timothyburt/Desktop/LIDC-IDRI-0001_normalized_3d_affine.npy"
 	temp_folder = "/users/timothyburt/Desktop/video_temp"  # for images and final video
 	patient_id = "0233"
-	annotations_path = "/Volumes/APPLE SSD/ACV_annotations"
+	annotations_path = "/Volumes/APPLE SSD/ACV_image_data"
 	# see https://matplotlib.org/3.1.1/gallery/color/colormap_reference.html
 	cmap = 'binary'
 	###########################################
 
-	projection_fn = "%s/LIDC-IDRI-%s_normalized_3d_projection.npy" % (annotations_path, patient_id)
-	affine_fn = "%s/LIDC-IDRI-%s_normalized_3d_affine.npy" % (annotations_path, patient_id)
+	projection_fn = "%s/projection_images/LIDC-IDRI-%s_normalized_3d_projection.npy" % (annotations_path, patient_id)
+	affine_fn = "%s/affine_images/LIDC-IDRI-%s_normalized_3d_affine.npy" % (annotations_path, patient_id)
 	movie_fn = "axial_movie_PID_%s" % patient_id
 
 	#single_img = np.load(single_fn)
@@ -98,5 +159,5 @@ if __name__ == '__main__':
 	os.chdir(temp_folder)
 
 	#make_axial_movie(single_img, cmap)
-	make_axial_movie_comparison(affine_img, projection_img, cmap, movie_fn, patient_id)
+	make_axial_movie_comparison(affine_img, projection_img, cmap, movie_fn, patient_id, lung_mask=True)
 	print("Done!")

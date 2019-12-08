@@ -8,9 +8,10 @@ import glob
 import os
 import argparse
 import csv
+from visualization import *
 
 
-def load_data(path, flag='affine'):
+def load_data(path, flag='affine', lungmask=True):
 	"""
 	INPUTS:
 	:path: 
@@ -38,16 +39,36 @@ def load_data(path, flag='affine'):
 	# sort image data into train/test data according to keys from .csv files
 	print("Loading/sorting image data into test/train split from .csv files...")
 	print("Loading %s images..." % flag)
+	if lungmask:
+		print("Creating erosion/dilation masks to remove lungs...")
 	for i in range(len(train_labels)):
 		train_image_temp = np.load("%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, train_labels[i][0], flag))
-		train_images.append(np.squeeze(train_image_temp))
+		masked_train_image_temp = []
+		if lungmask:
+			for j in range(len(train_image_temp)):
+				slice = np.squeeze(train_image_temp)[:][:][j]
+				slice_mask = make_lungmask(slice)
+				slice_masked = apply_lungmask(slice, slice_mask)
+				masked_train_image_temp.append(slice_masked)
+			train_images.append(masked_train_image_temp)
+		else:
+			train_images.append(np.squeeze(train_image_temp))
 	for i in range(len(test_labels)):
 		test_image_temp = np.load(
 			"%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, test_labels[i][0], flag))
-		test_images.append(np.squeeze(test_image_temp))
+		masked_test_image_temp = []
+		if lungmask:
+			for j in range(len(test_image_temp)):
+				slice = np.squeeze(test_image_temp)[:][:][j]
+				slice_mask = make_lungmask(slice)
+				slice_masked = apply_lungmask(slice, slice_mask)
+				masked_test_image_temp.append(slice_masked)
+			test_images.append(masked_test_image_temp)
+		else:
+			test_images.append(np.squeeze(test_image_temp))
 
-	train_classes = [int(i) for i in train_labels[i][1]]
-	test_classes = [int(i) for i in test_labels[i][1]]
+	train_classes = [int(k) for k in train_labels[k][1]]
+	test_classes = [int(k) for k in test_labels[k][1]]
 
 	return train_images, test_images, train_classes, test_classes
 
@@ -156,6 +177,6 @@ if __name__ == "__main__":
 
 	input_dims = [IMG_SIZE_PX, IMG_SIZE_PX, SLICE_COUNT]
 
-	train_data, validation_data, train_classes, test_classes = load_data(data_path, flag=flag)
+	train_data, validation_data, train_classes, test_classes = load_data(data_path, flag=flag, lungmask=True)
 
-	train_cnn(x)
+	#train_cnn(x)
