@@ -19,28 +19,41 @@ class AnnotationWidget(QWidget):
 
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
+        self.view_slice_adjuster.setToolTip("Adjust the currently displayed slice")
 
         self.superior_slice_adjuster_label = QLabel("Superior Slice (Main Pulmonary Artery Level)")
+
         self.superior_slice_adjuster = QSpinBox()
         self.superior_slice_adjuster.setMinimum(0)
         self.superior_slice_adjuster.setMaximum(0)
         self.superior_slice_adjuster.valueChanged.connect(self.on_superior_slice_adjuster_changed)
+        self.superior_slice_adjuster.setToolTip("The superior (top) crop boundary slice")
+
         self.view_to_superior_button = QPushButton("Set to view slice")
         self.view_to_superior_button.clicked.connect(self.on_view_to_superior_button_clicked)
+        self.view_to_superior_button.setToolTip("Set the superior (top) crop boundary slice to be the currently "
+                                                "displayed slice")
 
         self.inferior_slice_adjuster_label = QLabel("Inferior Slice (Low Cardiac Level)")
+
         self.inferior_slice_adjuster = QSpinBox()
         self.inferior_slice_adjuster.setMinimum(0)
         self.inferior_slice_adjuster.setMaximum(0)
         self.inferior_slice_adjuster.valueChanged.connect(self.on_inferior_slice_adjuster_changed)
+        self.inferior_slice_adjuster.setToolTip("The inferior (bottom) crop boundary slice")
+
         self.view_to_inferior_button = QPushButton("Set to view slice")
         self.view_to_inferior_button.clicked.connect(self.on_view_to_inferior_button_clicked)
+        self.view_to_inferior_button.setToolTip("Set the inferior (bottom) crop boundary slice to be the currently "
+                                                "displayed slice")
 
         self.slice_scale_label = QLabel("Boundary Slice Scale")
+
         self.slice_scale_adjuster = QDoubleSpinBox()
         self.slice_scale_adjuster.setMinimum(0.0)
         self.slice_scale_adjuster.setSingleStep(0.1)
         self.slice_scale_adjuster.valueChanged.connect(self.on_slice_scale_adjuster_changed)
+        self.slice_scale_adjuster.setToolTip("The scale factor used to scale crop boundaries for each slice")
 
         self.landmark_select_label = QLabel("Select a heart landmark to position")
 
@@ -56,10 +69,12 @@ class AnnotationWidget(QWidget):
                                                  "None"])
         self.landmark_select_combo_box.setCurrentIndex(8)
         self.landmark_select_combo_box.currentIndexChanged.connect(self.on_landmark_selection_changed)
+        self.landmark_select_combo_box.setToolTip("Select the heart landmark to annotate")
 
         self.landmark_position_adjuster = XYSpinnerComboWidget("Landmark position", (0, 0), (0, 0))
         self.landmark_position_adjuster.value_changed.connect(self.on_landmark_position_adjuster_changed)
         self.landmark_position_adjuster.setEnabled(False)
+        self.landmark_position_adjuster.setToolTip("The current XY position of the selected heart landmark")
 
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
