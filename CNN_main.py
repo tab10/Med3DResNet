@@ -29,7 +29,7 @@ def parse_args():
 	parser.add_argument('--log_dir', type=str, default='logs',
 	                    help='Directory name to save training logs')
 	parser.add_argument('--data_folder', type=str, default="acv_image_data", help="Name of image data folder")
-	parser.add_argument('--work_path', type=str, default="/Volumes/APPLE SSD", help="Working folder to start in")
+	parser.add_argument('--work_path', type=str, default="/Volumes/APPLE SSD/acv_project_team1_data", help="Working folder to start in")
 	parser.add_argument('--data_type', type=str, default='affine', help="affine or projection (type of image data to train with")
 	parser.add_argument('--use_lung_mask', action='store_true', help="Use masked input data, must batch export first with annotation GUI.")
 	parser.add_argument('--n_axial_channels', type=int, default=16, help="Number of averaged evenly-spaced z-direction blocks. (16, 8, 4). Smaller value-better resolution in axial direction.")

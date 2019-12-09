@@ -157,6 +157,13 @@ def make_axial_movie_comparison(affine_image, projection_image, masked_affine_im
 	os.system("ffmpeg -r %d -i slice_%%d.png -r 30 %s.mp4 -y" % (fps, movie_fn))
 
 
+#def plot_tf_accuracy_loss(model_fn):
+#	""".csv files exported using TensorBoard"""
+#	test_accuracy =
+
+
+
+
 if __name__ == '__main__':
 
 	################ CONSTANTS ################

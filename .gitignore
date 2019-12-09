@@ -6,4 +6,7 @@ venv/
 *.iml
 *.xml
 
+checkpoint/
+logs/
+
 

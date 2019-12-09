@@ -1,11 +1,11 @@
-# Prediction of atherosclerosis risk with unlabeled thoracic CT scans:  deep learning vs. Agatston method
+# Cardiovascular risk computed via Deep Learning (DL) on thoracic CT scans
 
 ## Timothy Burt, Luben Popov, Yuan Zi
+### COSC 7373 Adv. Computer Vision F19 Team 1
 
 ### Description
 
 ### Annotation GUI
-TODO: change annotation.txt to output annotation_ID*.txt with * the patient index (e.g. LIDC-0001 ->  1)
 
 ### Data preprocessing / normalization
 1. Loading the DICOM files
@@ -242,8 +242,8 @@ Fibrous (calcified) plaque: 86+-29 HU (range 57-115)
 CT's with or without lumen-enhancing contrast show no statistical significance on these values.
 (A Meta Analysis and Hierarchical Classification of HU-Based Atherosclerotic Plaque Characterization Criteria)
 
-### 3D CNN
-ResNet architecture 
+### 3D CNN: Ontology and ‘ResNets’
+We 
 
 4 CNN classes:
 0=Unknown
