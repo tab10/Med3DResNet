@@ -3,6 +3,10 @@
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
+
+import warnings
+warnings.filterwarnings('ignore',category=FutureWarning)
+
 import tensorflow as tf
 import tensorflow.contrib as tf_contrib
 

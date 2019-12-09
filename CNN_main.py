@@ -18,8 +18,8 @@ def parse_args():
 	parser.add_argument('--phase', type=str, default='train', help='train or test ?')
 	parser.add_argument('--dataset', type=str, default='ACV', help='[ACV] for our project')
 
-	parser.add_argument('--epoch', type=int, default=20, help='The number of epochs to run')
-	parser.add_argument('--batch_size', type=int, default=10, help='Minibatch size')
+	parser.add_argument('--epoch', type=int, default=25, help='The number of epochs to run')
+	parser.add_argument('--batch_size', type=int, default=40, help='Minibatch size')
 	parser.add_argument('--res_n', type=int, default=18, help='18, 34, 50, 101, 152')
 
 	parser.add_argument('--lr', type=float, default=0.1, help='learning rate')
@@ -32,7 +32,8 @@ def parse_args():
 	parser.add_argument('--work_path', type=str, default="/Volumes/APPLE SSD", help="Working folder to start in")
 	parser.add_argument('--data_type', type=str, default='affine', help="affine or projection (type of image data to train with")
 	parser.add_argument('--use_lung_mask', action='store_true', help="Use masked input data, must batch export first with annotation GUI.")
-	parser.add_argument('--n_slice_blocks', type=int, default=16, help="Number of channels ResNet will be trained on (averaged evenly-spaced z-direction blocks)")
+	parser.add_argument('--n_axial_channels', type=int, default=16, help="Number of averaged evenly-spaced z-direction blocks. (16, 8, 4). Smaller value-better resolution in axial direction.")
+	parser.add_argument('--train_test_ratio', type=str, required=True, help="Training/testing data split ('70_30' or '80_20')")
 	return check_args(parser.parse_args())
 
 
@@ -79,7 +80,7 @@ def main():
 		# show network architecture
 		show_all_variables()
 
-		print("%d-channel axial-averaged ResNet CNN..." % args.n_slice_blocks)
+		print("%d-slice axial-averaged ResNet CNN..." % args.n_axial_channels)
 
 		if args.phase == 'train' :
 			# launch the graph in a session

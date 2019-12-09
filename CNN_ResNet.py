@@ -16,50 +16,53 @@ class ResNet(object):
 		self.sess = sess
 		self.dataset_name = args.dataset
 
-		if self.dataset_name == 'cifar10' :
-			self.train_x, self.train_y, self.test_x, self.test_y = load_cifar10()
-			self.img_size = 32
-			self.c_dim = 3
-			self.label_dim = 10
-
-		if self.dataset_name == 'cifar100' :
-			self.train_x, self.train_y, self.test_x, self.test_y = load_cifar100()
-			self.img_size = 32
-			self.c_dim = 3
-			self.label_dim = 100
-
-		if self.dataset_name == 'mnist' :
-			self.train_x, self.train_y, self.test_x, self.test_y = load_mnist()
-			self.img_size = 28
-			self.c_dim = 1
-			self.label_dim = 10
-
-		if self.dataset_name == 'fashion-mnist' :
-			self.train_x, self.train_y, self.test_x, self.test_y = load_fashion()
-			self.img_size = 28
-			self.c_dim = 1
-			self.label_dim = 10
-
-		if self.dataset_name == 'tiny' :
-			self.train_x, self.train_y, self.test_x, self.test_y = load_tiny()
-			self.img_size = 64
-			self.c_dim = 3
-			self.label_dim = 200
+		# if self.dataset_name == 'cifar10' :
+		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_cifar10()
+		# 	self.img_size = 32
+		# 	self.c_dim = 3
+		# 	self.label_dim = 10
+		#
+		# if self.dataset_name == 'cifar100' :
+		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_cifar100()
+		# 	self.img_size = 32
+		# 	self.c_dim = 3
+		# 	self.label_dim = 100
+		#
+		# if self.dataset_name == 'mnist' :
+		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_mnist()
+		# 	self.img_size = 28
+		# 	self.c_dim = 1
+		# 	self.label_dim = 10
+		#
+		# if self.dataset_name == 'fashion-mnist' :
+		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_fashion()
+		# 	self.img_size = 28
+		# 	self.c_dim = 1
+		# 	self.label_dim = 10
+		#
+		# if self.dataset_name == 'tiny' :
+		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_tiny()
+		# 	self.img_size = 64
+		# 	self.c_dim = 3
+		# 	self.label_dim = 200
 
 		if self.dataset_name == 'ACV':
-			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(n_slice_blocks=args.n_slice_blocks,
+			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(n_axial_channels=args.n_axial_channels,
 			                                                                data_folder=args.data_folder, flag=args.data_type,
-			                                                                use_lung_mask=args.use_lung_mask)
+			                                                                use_lung_mask=args.use_lung_mask,
+			                                                                train_test_ratio=args.train_test_ratio)
 			self.img_size = 256  # 3D
-			self.c_dim = args.n_slice_blocks  # n_slice_blocks (averaged)
+			self.c_dim = self.img_size / args.n_axial_channels  # n_axial_channels (averaged)
 			self.label_dim = 3  # n_classes in diagnostic truth, excluding unknown 0 class
 
-		self.checkpoint_dir = args.checkpoint_dir # + "_z%d" % args.z_slice
-		self.log_dir = args.log_dir # + "_z%d" % args.z_slice
+		self.checkpoint_dir = args.checkpoint_dir
+		self.log_dir = args.log_dir
 
+		self.data_type = args.data_type
 		self.res_n = args.res_n
-		#self.z_slice = args.z_slice
 		self.use_lung_mask = args.use_lung_mask
+		self.n_axial_channels = args.n_axial_channels
+		self.train_test_ratio = args.train_test_ratio
 
 		self.epoch = args.epoch
 		self.batch_size = args.batch_size
@@ -217,7 +220,6 @@ class ResNet(object):
 					self.test_labels : self.test_y
 				}
 
-
 				# update network
 				_, summary_str, train_loss, train_accuracy = self.sess.run(
 					[self.optim, self.train_summary, self.train_loss, self.train_accuracy], feed_dict=train_feed_dict)
@@ -245,7 +247,9 @@ class ResNet(object):
 
 	@property
 	def model_dir(self):
-		return "{}{}_{}_{}_{}".format(self.model_name, self.res_n, self.dataset_name, self.batch_size, self.init_lr)
+		return "{}{}_{}{}_lungmask{}_ch{}_traintest_{}_{}_{}".format(self.model_name, self.res_n, self.dataset_name, self.data_type,
+		                                              str(self.use_lung_mask), self.n_axial_channels,
+		                                                           self.train_test_ratio, self.batch_size, self.init_lr)
 
 	def save(self, checkpoint_dir, step):
 		checkpoint_dir = os.path.join(checkpoint_dir, self.model_dir)
@@ -260,7 +264,7 @@ class ResNet(object):
 		checkpoint_dir = os.path.join(checkpoint_dir, self.model_dir)
 
 		ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
-		#ckpt = False # manual override
+
 		if ckpt and ckpt.model_checkpoint_path:
 			ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
 			self.saver.restore(self.sess, os.path.join(checkpoint_dir, ckpt_name))
@@ -286,7 +290,6 @@ class ResNet(object):
 			self.test_inptus: self.test_x,
 			self.test_labels: self.test_y
 		}
-
 
 		test_accuracy = self.sess.run(self.test_accuracy, feed_dict=test_feed_dict)
 		print("test_accuracy: {}".format(test_accuracy))

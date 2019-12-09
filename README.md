@@ -251,11 +251,12 @@ ResNet architecture
 2=malignant, primary lung cancer
 3 = malignant metastatic
 
-### Train
-* python CNN_main.py --phase train --dataset ACV --res_n 18 --lr 0.1 --epoch 10
+#### Examples
 
-### Test
-* python CNN_main.py --phase test --dataset ACV --res_n 18 --lr 0.1 --epoch 10 --z_slice 1
+* `python CNN_main.py --phase train --dataset ACV --res_n 18 --use_lung_mask --train_test_ratio 70_30 --batch_size 40 --lr 0.1 --data_type affine --n_slice_blocks=16`
+* 
+
+
 
 
 ### Results

@@ -3,6 +3,10 @@
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
+
+import warnings
+warnings.filterwarnings('ignore',category=FutureWarning)
+
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
@@ -44,168 +48,168 @@ def show_all_variables():
 def str2bool(x):
 	return x.lower() in ('true')
 
-def load_cifar10() :
-	(train_data, train_labels), (test_data, test_labels) = cifar10.load_data()
-	# train_data = train_data / 255.0
-	# test_data = test_data / 255.0
+# def load_cifar10() :
+# 	(train_data, train_labels), (test_data, test_labels) = cifar10.load_data()
+# 	# train_data = train_data / 255.0
+# 	# test_data = test_data / 255.0
+#
+# 	train_data, test_data = normalize(train_data, test_data)
+#
+# 	train_labels = to_categorical(train_labels, 10)
+# 	test_labels = to_categorical(test_labels, 10)
+#
+# 	seed = 777
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_data)
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_labels)
+#
+#
+# 	return train_data, train_labels, test_data, test_labels
+#
+# def load_cifar100() :
+# 	(train_data, train_labels), (test_data, test_labels) = cifar100.load_data()
+# 	# train_data = train_data / 255.0
+# 	# test_data = test_data / 255.0
+# 	train_data, test_data = normalize(train_data, test_data)
+#
+# 	train_labels = to_categorical(train_labels, 100)
+# 	test_labels = to_categorical(test_labels, 100)
+#
+# 	seed = 777
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_data)
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_labels)
+#
+#
+# 	return train_data, train_labels, test_data, test_labels
+#
+# def load_mnist() :
+# 	(train_data, train_labels), (test_data, test_labels) = mnist.load_data()
+# 	train_data = np.expand_dims(train_data, axis=-1)
+# 	test_data = np.expand_dims(test_data, axis=-1)
+#
+# 	train_data, test_data = normalize(train_data, test_data)
+#
+# 	train_labels = to_categorical(train_labels, 10)
+# 	test_labels = to_categorical(test_labels, 10)
+#
+# 	seed = 777
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_data)
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_labels)
+#
+#
+# 	return train_data, train_labels, test_data, test_labels
+#
+# def load_fashion() :
+# 	(train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
+# 	train_data = np.expand_dims(train_data, axis=-1)
+# 	test_data = np.expand_dims(test_data, axis=-1)
+#
+# 	train_data, test_data = normalize(train_data, test_data)
+#
+# 	train_labels = to_categorical(train_labels, 10)
+# 	test_labels = to_categorical(test_labels, 10)
+#
+# 	seed = 777
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_data)
+# 	np.random.seed(seed)
+# 	np.random.shuffle(train_labels)
+#
+#
+# 	return train_data, train_labels, test_data, test_labels
+#
+# def load_tiny() :
+# 	IMAGENET_MEAN = [123.68, 116.78, 103.94]
+# 	path = './tiny-imagenet-200'
+# 	num_classes = 200
+#
+# 	print('Loading ' + str(num_classes) + ' classes')
+#
+# 	X_train = np.zeros([num_classes * 500, 3, 64, 64], dtype=np.float32)
+# 	y_train = np.zeros([num_classes * 500], dtype=np.float32)
+#
+# 	trainPath = path + '/train'
+#
+# 	print('loading training images...')
+#
+# 	i = 0
+# 	j = 0
+# 	annotations = {}
+# 	for sChild in os.listdir(trainPath):
+# 		sChildPath = os.path.join(os.path.join(trainPath, sChild), 'images')
+# 		annotations[sChild] = j
+# 		for c in os.listdir(sChildPath):
+# 			X = misc.imread(os.path.join(sChildPath, c), mode='RGB')
+# 			if len(np.shape(X)) == 2:
+# 				X_train[i] = np.array([X, X, X])
+# 			else:
+# 				X_train[i] = np.transpose(X, (2, 0, 1))
+# 			y_train[i] = j
+# 			i += 1
+# 		j += 1
+# 		if (j >= num_classes):
+# 			break
+#
+# 	print('finished loading training images')
+#
+# 	val_annotations_map = get_annotations_map()
+#
+# 	X_test = np.zeros([num_classes * 50, 3, 64, 64], dtype=np.float32)
+# 	y_test = np.zeros([num_classes * 50], dtype=np.float32)
+#
+# 	print('loading test images...')
+#
+# 	i = 0
+# 	testPath = path + '/val/images'
+# 	for sChild in os.listdir(testPath):
+# 		if val_annotations_map[sChild] in annotations.keys():
+# 			sChildPath = os.path.join(testPath, sChild)
+# 			X = misc.imread(sChildPath, mode='RGB')
+# 			if len(np.shape(X)) == 2:
+# 				X_test[i] = np.array([X, X, X])
+# 			else:
+# 				X_test[i] = np.transpose(X, (2, 0, 1))
+# 			y_test[i] = annotations[val_annotations_map[sChild]]
+# 			i += 1
+# 		else:
+# 			pass
+#
+# 	print('finished loading test images : ' + str(i))
+#
+# 	X_train = X_train.astype(np.float32)
+# 	X_test = X_test.astype(np.float32)
+# 	# X_train /= 255.0
+# 	# X_test /= 255.0
+#
+# 	# for i in range(3) :
+# 	#     X_train[:, :, :, i] =  X_train[:, :, :, i] - IMAGENET_MEAN[i]
+# 	#     X_test[:, :, :, i] = X_test[:, :, :, i] - IMAGENET_MEAN[i]
+#
+# 	X_train, X_test = normalize(X_train, X_test)
+#
+#
+# 	# convert class vectors to binary class matrices
+# 	y_train = to_categorical(y_train, num_classes)
+# 	y_test = to_categorical(y_test, num_classes)
+#
+# 	X_train = np.transpose(X_train, [0, 3, 2, 1])
+# 	X_test = np.transpose(X_test, [0, 3, 2, 1])
+#
+# 	seed = 777
+# 	np.random.seed(seed)
+# 	np.random.shuffle(X_train)
+# 	np.random.seed(seed)
+# 	np.random.shuffle(y_train)
+#
+# 	return X_train, y_train, X_test, y_test
 
-	train_data, test_data = normalize(train_data, test_data)
 
-	train_labels = to_categorical(train_labels, 10)
-	test_labels = to_categorical(test_labels, 10)
-
-	seed = 777
-	np.random.seed(seed)
-	np.random.shuffle(train_data)
-	np.random.seed(seed)
-	np.random.shuffle(train_labels)
-
-
-	return train_data, train_labels, test_data, test_labels
-
-def load_cifar100() :
-	(train_data, train_labels), (test_data, test_labels) = cifar100.load_data()
-	# train_data = train_data / 255.0
-	# test_data = test_data / 255.0
-	train_data, test_data = normalize(train_data, test_data)
-
-	train_labels = to_categorical(train_labels, 100)
-	test_labels = to_categorical(test_labels, 100)
-
-	seed = 777
-	np.random.seed(seed)
-	np.random.shuffle(train_data)
-	np.random.seed(seed)
-	np.random.shuffle(train_labels)
-
-
-	return train_data, train_labels, test_data, test_labels
-
-def load_mnist() :
-	(train_data, train_labels), (test_data, test_labels) = mnist.load_data()
-	train_data = np.expand_dims(train_data, axis=-1)
-	test_data = np.expand_dims(test_data, axis=-1)
-
-	train_data, test_data = normalize(train_data, test_data)
-
-	train_labels = to_categorical(train_labels, 10)
-	test_labels = to_categorical(test_labels, 10)
-
-	seed = 777
-	np.random.seed(seed)
-	np.random.shuffle(train_data)
-	np.random.seed(seed)
-	np.random.shuffle(train_labels)
-
-
-	return train_data, train_labels, test_data, test_labels
-
-def load_fashion() :
-	(train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
-	train_data = np.expand_dims(train_data, axis=-1)
-	test_data = np.expand_dims(test_data, axis=-1)
-
-	train_data, test_data = normalize(train_data, test_data)
-
-	train_labels = to_categorical(train_labels, 10)
-	test_labels = to_categorical(test_labels, 10)
-
-	seed = 777
-	np.random.seed(seed)
-	np.random.shuffle(train_data)
-	np.random.seed(seed)
-	np.random.shuffle(train_labels)
-
-
-	return train_data, train_labels, test_data, test_labels
-
-def load_tiny() :
-	IMAGENET_MEAN = [123.68, 116.78, 103.94]
-	path = './tiny-imagenet-200'
-	num_classes = 200
-
-	print('Loading ' + str(num_classes) + ' classes')
-
-	X_train = np.zeros([num_classes * 500, 3, 64, 64], dtype=np.float32)
-	y_train = np.zeros([num_classes * 500], dtype=np.float32)
-
-	trainPath = path + '/train'
-
-	print('loading training images...')
-
-	i = 0
-	j = 0
-	annotations = {}
-	for sChild in os.listdir(trainPath):
-		sChildPath = os.path.join(os.path.join(trainPath, sChild), 'images')
-		annotations[sChild] = j
-		for c in os.listdir(sChildPath):
-			X = misc.imread(os.path.join(sChildPath, c), mode='RGB')
-			if len(np.shape(X)) == 2:
-				X_train[i] = np.array([X, X, X])
-			else:
-				X_train[i] = np.transpose(X, (2, 0, 1))
-			y_train[i] = j
-			i += 1
-		j += 1
-		if (j >= num_classes):
-			break
-
-	print('finished loading training images')
-
-	val_annotations_map = get_annotations_map()
-
-	X_test = np.zeros([num_classes * 50, 3, 64, 64], dtype=np.float32)
-	y_test = np.zeros([num_classes * 50], dtype=np.float32)
-
-	print('loading test images...')
-
-	i = 0
-	testPath = path + '/val/images'
-	for sChild in os.listdir(testPath):
-		if val_annotations_map[sChild] in annotations.keys():
-			sChildPath = os.path.join(testPath, sChild)
-			X = misc.imread(sChildPath, mode='RGB')
-			if len(np.shape(X)) == 2:
-				X_test[i] = np.array([X, X, X])
-			else:
-				X_test[i] = np.transpose(X, (2, 0, 1))
-			y_test[i] = annotations[val_annotations_map[sChild]]
-			i += 1
-		else:
-			pass
-
-	print('finished loading test images : ' + str(i))
-
-	X_train = X_train.astype(np.float32)
-	X_test = X_test.astype(np.float32)
-	# X_train /= 255.0
-	# X_test /= 255.0
-
-	# for i in range(3) :
-	#     X_train[:, :, :, i] =  X_train[:, :, :, i] - IMAGENET_MEAN[i]
-	#     X_test[:, :, :, i] = X_test[:, :, :, i] - IMAGENET_MEAN[i]
-
-	X_train, X_test = normalize(X_train, X_test)
-
-
-	# convert class vectors to binary class matrices
-	y_train = to_categorical(y_train, num_classes)
-	y_test = to_categorical(y_test, num_classes)
-
-	X_train = np.transpose(X_train, [0, 3, 2, 1])
-	X_test = np.transpose(X_test, [0, 3, 2, 1])
-
-	seed = 777
-	np.random.seed(seed)
-	np.random.shuffle(X_train)
-	np.random.seed(seed)
-	np.random.shuffle(y_train)
-
-	return X_train, y_train, X_test, y_test
-
-
-def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
+def load_ACV(data_folder, n_axial_channels, flag, use_lung_mask, train_test_ratio, verbose=False):
 	"""
 	"""
 
@@ -222,12 +226,24 @@ def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 
 	print("Loading diagnostic truth class labels...")  # these are the diagnostic truth
 
-	with open("acv_train_labels_3_class.csv", "r") as f:
+	if train_test_ratio == '70_30':
+		print("%s train/test ratio being used..." % train_test_ratio)
+		train_labels_fn = "acv_train_labels_%s_3_class.csv" % train_test_ratio
+		test_labels_fn = "acv_test_labels_%s_3_class.csv" % train_test_ratio
+	elif train_test_ratio == '80_20':
+		print("%s train/test ratio being used..." % train_test_ratio)
+		train_labels_fn = "acv_train_labels_%s_3_class.csv" % train_test_ratio
+		test_labels_fn = "acv_test_labels_%s_3_class.csv" % train_test_ratio
+	else:
+		print("Check train/test ratio value!")
+		raise SystemExit
+
+	with open(train_labels_fn, "r") as f:
 		reader = csv.reader(f)
 		train_labels = list(reader)[1:]
 	f.close()
 
-	with open("acv_test_labels_3_class.csv", "r") as f:
+	with open(test_labels_fn, "r") as f:
 		reader = csv.reader(f)
 		test_labels = list(reader)[1:]
 	f.close()
@@ -237,7 +253,6 @@ def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 	print("Loading %s images..." % flag)
 	if use_lung_mask:
 		print("Loading erosion/dilation masked images...")
-		print(use_lung_mask)
 	for i in range(len(train_labels)):
 		if use_lung_mask:
 			train_image_fn = "%s/%s_images/%s_normalized_3d_%s_masked.npy" % (data_folder, flag, train_labels[i][0], flag)
@@ -260,7 +275,7 @@ def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 		test_data.append(np.squeeze(test_image_temp))
 		test_labels_list.append(int(test_labels[i][1]))
 
-	train_data, test_data = normalize(train_data, test_data, n_slice_blocks, verbose=verbose)
+	train_data, test_data = normalize(train_data, test_data, n_axial_channels, verbose=verbose)
 
 	# class label gymnastics
 	train_labels = np.asarray(train_labels_list) - 1  # -1 moves classes to [0,1,2], excluding unknown class
@@ -268,7 +283,7 @@ def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 
 	if verbose:
 		print("Global min HU: %d, global max HU: %d before [0,1] map. Input image channels: %d" % (
-		MIN_HU, MAX_HU, n_slice_blocks))
+		MIN_HU, MAX_HU, n_axial_channels))
 		print(train_labels.shape, train_data.shape)
 
 	train_labels = to_categorical(train_labels, 3)
@@ -283,15 +298,19 @@ def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 	return train_data, train_labels, test_data, test_labels
 
 
-def normalize(X_train, X_test, n_slice_blocks, verbose=False):
+def normalize(X_train, X_test, n_axial_channels, verbose=False):
 
 	X_train_z_slices = []
 	X_test_z_slices = []
 
-	for i in range(1, n_slice_blocks+1):
-		print("Averaging z-block %d of %d..." % (i, n_slice_blocks))
-		z_slice_start = ((i-1) * n_slice_blocks)
-		z_slice_stop = (i * n_slice_blocks) - 1
+	slices = int(256 / n_axial_channels)
+	slice_width = int(256 / slices)
+
+	for i in range(1, slices+1):
+		print("Averaging z-block %d of %d..." % (i, slices))
+
+		z_slice_start = ((i-1) * slice_width)
+		z_slice_stop = (i * slice_width) - 1
 
 		X_train_z_slice = np.mean(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop], axis=3)
 		X_test_z_slice = np.mean(np.asarray(X_test)[:,:,:,z_slice_start:z_slice_stop], axis=3)
@@ -304,7 +323,7 @@ def normalize(X_train, X_test, n_slice_blocks, verbose=False):
 		X_train_z_slices.append(X_train_z_slice)
 		X_test_z_slices.append(X_test_z_slice)
 
-	print("Normalizing z-blocks...") # %d of %d..." % (i, n_slice_blocks))
+	print("Normalizing z-blocks...")
 
 	#X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)  # for single channel images, use this
 	#X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
