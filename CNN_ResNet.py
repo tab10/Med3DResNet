@@ -10,6 +10,8 @@ from visualization import *
 
 class ResNet(object):
 	def __init__(self, sess, args):
+		os.chdir(args.work_path)
+
 		self.model_name = 'ResNet'
 		self.sess = sess
 		self.dataset_name = args.dataset
@@ -45,19 +47,19 @@ class ResNet(object):
 			self.label_dim = 200
 
 		if self.dataset_name == 'ACV':
-			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(z_slice=args.z_slice,
-			                                                                n_slice_blocks=args.n_slice_blocks,
+			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(n_slice_blocks=args.n_slice_blocks,
 			                                                                data_folder=args.data_folder, flag=args.data_type,
-			                                                                lungmask=args.lung_mask)
+			                                                                use_lung_mask=args.use_lung_mask)
 			self.img_size = 256  # 3D
-			self.c_dim = 1  # greyscale
-			self.label_dim = 4
+			self.c_dim = args.n_slice_blocks  # n_slice_blocks (averaged)
+			self.label_dim = 3  # n_classes in diagnostic truth, excluding unknown 0 class
 
-		self.checkpoint_dir = args.checkpoint_dir + "_z%d" % args.z_slice
-		self.log_dir = args.log_dir + "_z%d" % args.z_slice
+		self.checkpoint_dir = args.checkpoint_dir # + "_z%d" % args.z_slice
+		self.log_dir = args.log_dir # + "_z%d" % args.z_slice
 
 		self.res_n = args.res_n
-		self.z_slice = args.z_slice
+		#self.z_slice = args.z_slice
+		self.use_lung_mask = args.use_lung_mask
 
 		self.epoch = args.epoch
 		self.batch_size = args.batch_size
@@ -243,7 +245,7 @@ class ResNet(object):
 
 	@property
 	def model_dir(self):
-		return "{}{}_{}_{}_{}_{}".format(self.model_name, self.res_n, self.z_slice, self.dataset_name, self.batch_size, self.init_lr)
+		return "{}{}_{}_{}_{}".format(self.model_name, self.res_n, self.dataset_name, self.batch_size, self.init_lr)
 
 	def save(self, checkpoint_dir, step):
 		checkpoint_dir = os.path.join(checkpoint_dir, self.model_dir)

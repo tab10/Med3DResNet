@@ -2,6 +2,8 @@
 # tim burt 11/30/19
 
 import numpy as np
+np.warnings.filterwarnings('ignore')
+
 import os
 import matplotlib.pyplot as plt
 from glob import glob

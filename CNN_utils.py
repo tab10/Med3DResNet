@@ -12,6 +12,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # or any {DEBUG,
 from keras.datasets import cifar10, cifar100, mnist, fashion_mnist
 from keras.utils import to_categorical
 import numpy as np
+
 import random
 from scipy import misc
 import csv
@@ -21,7 +22,7 @@ from visualization import *
 tf.logging.set_verbosity(tf.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
 
 
-def _update_hu_range_(img, cur_min, cur_max):
+def update_hu_range(img, cur_min, cur_max):
 	local_min_hu = np.amin(img)
 	local_max_hu = np.amax(img)
 	if local_min_hu < cur_min:
@@ -204,14 +205,8 @@ def load_tiny() :
 	return X_train, y_train, X_test, y_test
 
 
-def load_ACV(data_folder, z_slice, n_slice_blocks, flag='affine', lungmask=True):
+def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 	"""
-	INPUTS:
-	:data_folder:
-	:print_mod:
-	:flag:
-	OUTPUTS:
-
 	"""
 
 	train_data = []
@@ -227,12 +222,12 @@ def load_ACV(data_folder, z_slice, n_slice_blocks, flag='affine', lungmask=True)
 
 	print("Loading diagnostic truth class labels...")  # these are the diagnostic truth
 
-	with open("acv_train_labels.csv", "r") as f:
+	with open("acv_train_labels_3_class.csv", "r") as f:
 		reader = csv.reader(f)
 		train_labels = list(reader)[1:]
 	f.close()
 
-	with open("acv_test_labels.csv", "r") as f:
+	with open("acv_test_labels_3_class.csv", "r") as f:
 		reader = csv.reader(f)
 		test_labels = list(reader)[1:]
 	f.close()
@@ -240,55 +235,44 @@ def load_ACV(data_folder, z_slice, n_slice_blocks, flag='affine', lungmask=True)
 	# sort image data into train/test data according to keys from .csv files
 	print("Loading/sorting image data into test/train split from .csv files...")
 	print("Loading %s images..." % flag)
-	if lungmask:
-		print("Creating erosion/dilation masks to remove lungs...")
+	if use_lung_mask:
+		print("Loading erosion/dilation masked images...")
+		print(use_lung_mask)
 	for i in range(len(train_labels)):
-		train_image_temp = np.load("%s/%s_images/%s_normalized_3d_%s.npy" % (data_folder, flag, train_labels[i][0], flag))
-		masked_train_image_temp = []
-		if lungmask:
-			for j in range(len(train_image_temp)):
-				slice = np.squeeze(train_image_temp)[:][:][j]
-				slice_mask = make_lungmask(slice)
-				slice_masked = apply_lungmask(slice, slice_mask)
-				masked_train_image_temp.append(slice_masked)
-			masked_train_image_temp += offset
-			MIN_HU, MAX_HU = _update_hu_range_(masked_train_image_temp, MIN_HU, MAX_HU)
-			train_data.append(masked_train_image_temp)
+		if use_lung_mask:
+			train_image_fn = "%s/%s_images/%s_normalized_3d_%s_masked.npy" % (data_folder, flag, train_labels[i][0], flag)
 		else:
-			train_image_temp += offset
-			MIN_HU, MAX_HU = _update_hu_range_(train_image_temp, MIN_HU, MAX_HU)
-			train_data.append(np.squeeze(train_image_temp))
+			train_image_fn = "%s/%s_images/%s_normalized_3d_%s.npy" % (data_folder, flag, train_labels[i][0], flag)
+		train_image_temp = np.load(train_image_fn)
+		train_image_temp += offset
+		MIN_HU, MAX_HU = update_hu_range(train_image_temp, MIN_HU, MAX_HU)
+		train_data.append(np.squeeze(train_image_temp))
 		train_labels_list.append(int(train_labels[i][1]))
+
 	for i in range(len(test_labels)):
-		test_image_temp = np.load(
-			"%s/%s_images/%s_normalized_3d_%s.npy" % (data_folder, flag, test_labels[i][0], flag))
-		masked_test_image_temp = []
-		if lungmask:
-			for j in range(len(test_image_temp)):
-				slice = np.squeeze(test_image_temp)[:][:][j]
-				slice_mask = make_lungmask(slice)
-				slice_masked = apply_lungmask(slice, slice_mask)
-				masked_test_image_temp.append(slice_masked)
-			masked_test_image_temp += offset
-			MIN_HU, MAX_HU = _update_hu_range_(masked_test_image_temp, MIN_HU, MAX_HU)
-			test_data.append(masked_test_image_temp)
+		if use_lung_mask:
+			test_image_fn = "%s/%s_images/%s_normalized_3d_%s_masked.npy" % (data_folder, flag, test_labels[i][0], flag)
 		else:
-			test_image_temp += offset
-			MIN_HU, MAX_HU = _update_hu_range_(test_image_temp, MIN_HU, MAX_HU)
-			test_data.append(np.squeeze(test_image_temp))
+			test_image_fn = "%s/%s_images/%s_normalized_3d_%s.npy" % (data_folder, flag, test_labels[i][0], flag)
+		test_image_temp = np.load(test_image_fn)
+		test_image_temp += offset
+		MIN_HU, MAX_HU = update_hu_range(test_image_temp, MIN_HU, MAX_HU)
+		test_data.append(np.squeeze(test_image_temp))
 		test_labels_list.append(int(test_labels[i][1]))
 
-	n_channels = int(MAX_HU - MIN_HU + 1)
-	print("Global min HU: %d, global max HU: %d. Input image channels: 1" % (MIN_HU, MAX_HU))
+	train_data, test_data = normalize(train_data, test_data, n_slice_blocks, verbose=verbose)
 
-	train_data, test_data = normalize(train_data, test_data, z_slice, n_slice_blocks)
-	train_labels = np.asarray(train_labels_list)
-	test_labels = np.asarray(test_labels_list)
+	# class label gymnastics
+	train_labels = np.tile(np.asarray(train_labels_list) - 1, 2)  # -1 moves classes to [0,1,2], excluding unknown class
+	test_labels = np.tile(np.asarray(test_labels_list) - 1, 2)
 
-	print(train_labels.shape, train_data.shape)
+	if verbose:
+		print("Global min HU: %d, global max HU: %d before [0,1] map. Input image channels: %d" % (
+		MIN_HU, MAX_HU, n_slice_blocks))
+		print(train_labels.shape, train_data.shape)
 
-	train_labels = to_categorical(train_labels, 4)
-	test_labels = to_categorical(test_labels, 4)
+	train_labels = to_categorical(train_labels, 3)
+	test_labels = to_categorical(test_labels, 3)
 
 	seed = 777
 	np.random.seed(seed)
@@ -299,31 +283,42 @@ def load_ACV(data_folder, z_slice, n_slice_blocks, flag='affine', lungmask=True)
 	return train_data, train_labels, test_data, test_labels
 
 
-def normalize(X_train, X_test, z_slice, n_slice_blocks):
+def normalize(X_train, X_test, n_slice_blocks, verbose=False):
 
-	print("Averaging z-block %d..." % z_slice)
-	z_slice_start = ((z_slice-1) * n_slice_blocks)
-	z_slice_stop = (z_slice * n_slice_blocks) - 1
-	print(z_slice_start, z_slice_stop)
-	print(np.asarray(X_train).shape)
-	print(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop].shape)
+	X_train_z_slices = []
+	X_test_z_slices = []
 
-	X_train_z_slice = np.mean(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop], axis=3)
-	X_test_z_slice = np.mean(np.asarray(X_test)[:,:,:,z_slice_start:z_slice_stop], axis=3)
+	for i in range(1, n_slice_blocks+1):
+		print("Averaging z-block %d of %d..." % (i, n_slice_blocks))
+		z_slice_start = ((i-1) * n_slice_blocks)
+		z_slice_stop = (i * n_slice_blocks) - 1
 
-	print(X_train_z_slice.shape)
-	print("Normalizing z-block %d..." % z_slice)
+		X_train_z_slice = np.mean(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop], axis=3)
+		X_test_z_slice = np.mean(np.asarray(X_test)[:,:,:,z_slice_start:z_slice_stop], axis=3)
 
-	X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)
-	X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
+		if verbose:
+			print(np.asarray(X_train).shape)
+			print(np.asarray(X_train)[:, :, :, z_slice_start:z_slice_stop].shape)
+			print(X_train_z_slice.shape)
 
-	mean = np.mean(X_train_z_slice, axis=(0, 1, 2, 3))
-	std = np.std(X_train_z_slice, axis=(0, 1, 2, 3))
+		print("Normalizing z-block %d of %d..." % (i, n_slice_blocks))
 
-	X_train_z_slice = (X_train_z_slice - mean) / std
-	X_test_z_slice = (X_test_z_slice - mean) / std
+		X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)
+		X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
 
-	return X_train_z_slice, X_test_z_slice
+		mean = np.mean(X_train_z_slice, axis=(0, 1, 2, 3))
+		std = np.std(X_train_z_slice, axis=(0, 1, 2, 3))
+
+		X_train_z_slice = (X_train_z_slice - mean) / std
+		X_test_z_slice = (X_test_z_slice - mean) / std
+
+		X_train_z_slices.append(X_train_z_slice)
+		X_test_z_slices.append(X_test_z_slice)
+
+	X_train_z_slices = np.asarray(X_train_z_slices)
+	X_test_z_slices = np.asarray(X_test_z_slices)
+
+	return X_train_z_slices, X_test_z_slices
 
 
 def get_annotations_map():
