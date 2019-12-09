@@ -1,3 +1,9 @@
+'''
+DataNormalization
+Author: Luben Popov & Yuan Zi
+This library handles normalization of cross sectional images into 3D arrays.
+'''
+
 import numpy as np
 from skimage.transform import ProjectiveTransform
 import MathUtil
@@ -5,6 +11,13 @@ import cv2
 from scipy.ndimage import zoom
 import visualization
 
+# Normalizes a cross sectional image to a 3D array with desired dimension sizes using affine normalization; this method
+# preserves the shape of the cross sectional image features but produces black space from cropped out areas. Also
+# converts pixel data to Hounsfield units
+# cross_sectional_image: The DICOMCrossSectionalImage instance to be normalized
+# desired_width: The desired width (x-axis) of the normalized 3D array
+# desired_height: The desired height (y-axis) of the normalized 3D array
+# desired_depth: The desired depth (z-axis) of the normalized 3D array
 def normalize_cross_sectional_image_affine(cross_sectional_image, desired_width, desired_height,
                                            desired_depth):
     print(f"exporting normalized 3d image (affine) for {cross_sectional_image.patient_id}")
@@ -37,6 +50,14 @@ def normalize_cross_sectional_image_affine(cross_sectional_image, desired_width,
     print("normalization done")
     return result
 
+# Normalizes a cross sectional image to a 3D array with desired dimension sizes using projection normalization; this
+# method ensures that there is no black space in the 3D array but warps the cross sectional image's features. Also
+# converts pixel data to Hounsfield units
+# cross_sectional_image: The DICOMCrossSectionalImage instance to be normalized
+# desired_width: The desired width (x-axis) of the normalized 3D array
+# desired_height: The desired height (y-axis) of the normalized 3D array
+# desired_depth: The desired depth (z-axis) of the normalized 3D array
+# output: A 3D NumPy array containing the normalized image data
 def normalize_cross_sectional_image_projected(cross_sectional_image, desired_width, desired_height,
                                               desired_depth):
     print(f"normalizing 3d image (projection) for {cross_sectional_image.patient_id}")
@@ -60,6 +81,16 @@ def normalize_cross_sectional_image_projected(cross_sectional_image, desired_wid
     print("normalization done")
     return result
 
+# Normalizes a single slice (2D array) to a 2D array with desired dimension sizes using affine normalization; this
+# method preserves the shape of the cross sectional image features but produces black space from cropped out areas
+# slice_pixel_array: The 2D NumPy array containing the data for the slice to be normalized
+# crop_bounds: The crop boundaries for the slice to be normalized ((x, y) coordinates, clockwise order starting at
+#              upper left corner)
+# landmark_bounds: The overall heart landmark bounds for the cross sectional image that the slice comes from (in the
+#                  same format that heart landmarks are stored in HeartLandmarks.py)
+# desired_width: The desired width (x-axis) of the normalized 2D array
+# desired_height: The desired height (y-axis) of the normalized 2D array
+# output: A 2D NumPy array containing the normalized slice data
 def normalize_slice_affine(slice_pixel_array, crop_bounds, landmark_bounds, desired_width, desired_height):
     mask = np.zeros(slice_pixel_array.shape)
     crop_corners = np.array([[crop_bounds[0], crop_bounds[1], crop_bounds[2], crop_bounds[3]]], dtype=np.int32)
@@ -69,6 +100,14 @@ def normalize_slice_affine(slice_pixel_array, crop_bounds, landmark_bounds, desi
     result = cv2.resize(result, (desired_height, desired_width), cv2.INTER_LINEAR)
     return result
 
+# Normalizes a single slice (2D array) to a 2D array with desired dimension sizes using affine normalization; this
+# method ensures that there is no black space in the 3D array but warps the cross sectional image's features
+# slice_pixel_array: The 2D NumPy array containing the data for the slice to be normalized
+# crop_bounds: The crop boundaries for the slice to be normalized ((x, y) coordinates, clockwise order starting at
+#              upper left corner)
+# desired_width: The desired width (x-axis) of the normalized 2D array
+# desired_height: The desired height (y-axis) of the normalized 2D array
+# output: A 2D NumPy array containing the normalized slice data
 def normalize_slice_projection(slice_pixel_array, crop_bounds, desired_width, desired_height):
     result = np.zeros((desired_height, desired_width))
     #Crop bounds must be converted from (x, y) points to (y, x) points
@@ -89,6 +128,9 @@ def normalize_slice_projection(slice_pixel_array, crop_bounds, desired_width, de
 
     return result
 
+# Masks a 3D array using erosion and dilation
+# array: The 3D NumPy array to be masked
+# output: A 3D NumPy array containing the masked array data
 def mask_3d_array(array):
     print("masking array")
     result = []
@@ -104,6 +146,9 @@ def mask_3d_array(array):
     print("masking done")
     return result
 
+# Converts all pixels in a single PyDicom slice object to Hounsfield units
+# slice: The PyDicom slice object to be converted to Hounsfield units
+# output: A 2D NumPy array containing the input slice object's pixel array converted to Hounsfield units
 def slice_to_hu_pixels(slice):
     image = slice.pixel_array
     # Convert to int16 (from sometimes int16),

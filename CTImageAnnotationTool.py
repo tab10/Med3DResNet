@@ -1,4 +1,9 @@
-#This file should be the entry point for the CT image annotation tool
+'''
+CTImageAnnotationTool
+Author: Luben Popov
+This serves as the entry point for the annotation tool, and should be run in order to open it.
+'''
+
 from PyQt5.QtWidgets import QApplication
 from CTImageAnnotationToolMainWindow import CTImageAnnotationToolMainWindow
 

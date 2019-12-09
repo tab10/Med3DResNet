@@ -1,3 +1,10 @@
+'''
+SpinnerDialComboWidget
+Author: Luben Popov
+This custom QT widget extends QLabel and is used to display the view slice in the annotation tool, as well as read user
+mouse input and display annotation landmarks, crop boundaries, and a custom cursor.
+'''
+
 from PyQt5.Qt import *
 import cv2
 import MathUtil
