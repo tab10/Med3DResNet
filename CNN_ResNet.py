@@ -16,36 +16,6 @@ class ResNet(object):
 		self.sess = sess
 		self.dataset_name = args.dataset
 
-		# if self.dataset_name == 'cifar10' :
-		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_cifar10()
-		# 	self.img_size = 32
-		# 	self.c_dim = 3
-		# 	self.label_dim = 10
-		#
-		# if self.dataset_name == 'cifar100' :
-		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_cifar100()
-		# 	self.img_size = 32
-		# 	self.c_dim = 3
-		# 	self.label_dim = 100
-		#
-		# if self.dataset_name == 'mnist' :
-		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_mnist()
-		# 	self.img_size = 28
-		# 	self.c_dim = 1
-		# 	self.label_dim = 10
-		#
-		# if self.dataset_name == 'fashion-mnist' :
-		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_fashion()
-		# 	self.img_size = 28
-		# 	self.c_dim = 1
-		# 	self.label_dim = 10
-		#
-		# if self.dataset_name == 'tiny' :
-		# 	self.train_x, self.train_y, self.test_x, self.test_y = load_tiny()
-		# 	self.img_size = 64
-		# 	self.c_dim = 3
-		# 	self.label_dim = 200
-
 		if self.dataset_name == 'ACV':
 			self.train_x, self.train_y, self.test_x, self.test_y = load_ACV(n_axial_channels=args.n_axial_channels,
 			                                                                data_folder=args.data_folder, flag=args.data_type,
