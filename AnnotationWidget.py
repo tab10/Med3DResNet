@@ -17,46 +17,43 @@ class AnnotationWidget(QWidget):
         self.cross_sectional_image = None
         self.view_slice = 0
 
-        self.image_directory_button = QPushButton("Select Image Directory", self)
-        self.image_directory_button.clicked.connect(self.on_image_directory_button_clicked)
-
-        self.export_annotations_button = QPushButton("Export Annotations", self)
-        self.export_annotations_button.clicked.connect(self.on_export_annotations_button_clicked)
-        self.export_annotations_button.setEnabled(False)
-
-        self.import_annotations_button = QPushButton("Import Annotations", self)
-        self.import_annotations_button.clicked.connect(self.on_import_annotations_button_clicked)
-
-        self.batch_export_3d_arrays_button = QPushButton("Batch Export Annotations to 3D Arrays", self)
-        self.batch_export_3d_arrays_button.clicked.connect(self.on_batch_export_3d_arrays_button_clicked)
-
-        self.batch_mask_3d_arrays_button = QPushButton("Batch Mask 3D Arrays", self)
-        self.batch_mask_3d_arrays_button.clicked.connect(self.on_batch_mask_3d_arrays_button_clicked)
-
         self.view_slice_adjuster = SpinnerDialComboWidget("View Slice", 0, 0, 0)
         self.view_slice_adjuster.value_changed.connect(self.on_view_slice_adjuster_changed)
+        self.view_slice_adjuster.setToolTip("Adjust the currently displayed slice")
 
         self.superior_slice_adjuster_label = QLabel("Superior Slice (Main Pulmonary Artery Level)")
+
         self.superior_slice_adjuster = QSpinBox()
         self.superior_slice_adjuster.setMinimum(0)
         self.superior_slice_adjuster.setMaximum(0)
         self.superior_slice_adjuster.valueChanged.connect(self.on_superior_slice_adjuster_changed)
+        self.superior_slice_adjuster.setToolTip("The superior (top) crop boundary slice")
+
         self.view_to_superior_button = QPushButton("Set to view slice")
         self.view_to_superior_button.clicked.connect(self.on_view_to_superior_button_clicked)
+        self.view_to_superior_button.setToolTip("Set the superior (top) crop boundary slice to be the currently "
+                                                "displayed slice")
 
         self.inferior_slice_adjuster_label = QLabel("Inferior Slice (Low Cardiac Level)")
+
         self.inferior_slice_adjuster = QSpinBox()
         self.inferior_slice_adjuster.setMinimum(0)
         self.inferior_slice_adjuster.setMaximum(0)
         self.inferior_slice_adjuster.valueChanged.connect(self.on_inferior_slice_adjuster_changed)
+        self.inferior_slice_adjuster.setToolTip("The inferior (bottom) crop boundary slice")
+
         self.view_to_inferior_button = QPushButton("Set to view slice")
         self.view_to_inferior_button.clicked.connect(self.on_view_to_inferior_button_clicked)
+        self.view_to_inferior_button.setToolTip("Set the inferior (bottom) crop boundary slice to be the currently "
+                                                "displayed slice")
 
         self.slice_scale_label = QLabel("Boundary Slice Scale")
+
         self.slice_scale_adjuster = QDoubleSpinBox()
         self.slice_scale_adjuster.setMinimum(0.0)
         self.slice_scale_adjuster.setSingleStep(0.1)
         self.slice_scale_adjuster.valueChanged.connect(self.on_slice_scale_adjuster_changed)
+        self.slice_scale_adjuster.setToolTip("The scale factor used to scale crop boundaries for each slice")
 
         self.landmark_select_label = QLabel("Select a heart landmark to position")
 
@@ -72,16 +69,12 @@ class AnnotationWidget(QWidget):
                                                  "None"])
         self.landmark_select_combo_box.setCurrentIndex(8)
         self.landmark_select_combo_box.currentIndexChanged.connect(self.on_landmark_selection_changed)
+        self.landmark_select_combo_box.setToolTip("Select the heart landmark to annotate")
 
         self.landmark_position_adjuster = XYSpinnerComboWidget("Landmark position", (0, 0), (0, 0))
         self.landmark_position_adjuster.value_changed.connect(self.on_landmark_position_adjuster_changed)
         self.landmark_position_adjuster.setEnabled(False)
-
-        self.reset_landmarks_button = QPushButton("Reset Landmarks")
-        self.reset_landmarks_button.clicked.connect(self.on_reset_landmarks_button_clicked)
-
-        self.reverse_slices_button = QPushButton("Reverse Slices")
-        self.reverse_slices_button.clicked.connect(self.on_reverse_slices_button_clicked)
+        self.landmark_position_adjuster.setToolTip("The current XY position of the selected heart landmark")
 
         self.view_slice_widget = ViewSliceWidget(self)
         self.view_slice_widget.mouse_dragged.connect(self.on_view_slice_widget_mouse_drag)
@@ -115,18 +108,11 @@ class AnnotationWidget(QWidget):
         landmark_select_vertical_layout.addWidget(self.landmark_select_combo_box)
 
         tools_grid_layout.setColumnStretch(0, 1)
-        tools_grid_layout.addWidget(self.image_directory_button, 0, 0)
+        tools_grid_layout.addWidget(self.view_slice_adjuster, 0, 0)
         tools_grid_layout.setColumnStretch(1, 1)
-        tools_grid_layout.addWidget(self.export_annotations_button, 0, 1)
-        tools_grid_layout.addWidget(self.import_annotations_button, 1, 0)
-        tools_grid_layout.addWidget(self.batch_export_3d_arrays_button, 1, 1)
-        tools_grid_layout.addWidget(self.batch_mask_3d_arrays_button, 2, 1)
-        tools_grid_layout.addWidget(self.view_slice_adjuster, 3, 0)
-        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 3, 1)
-        tools_grid_layout.addLayout(landmark_select_vertical_layout, 4, 0)
-        tools_grid_layout.addWidget(self.landmark_position_adjuster, 4, 1)
-        tools_grid_layout.addWidget(self.reset_landmarks_button, 5, 0)
-        tools_grid_layout.addWidget(self.reverse_slices_button, 5, 1)
+        tools_grid_layout.addLayout(boundary_slice_vertical_layout, 0, 1)
+        tools_grid_layout.addLayout(landmark_select_vertical_layout, 1, 0)
+        tools_grid_layout.addWidget(self.landmark_position_adjuster, 1, 1)
 
         vertical_layout.setAlignment(Qt.AlignCenter)
         vertical_layout.addLayout(tools_grid_layout)
@@ -147,7 +133,6 @@ class AnnotationWidget(QWidget):
 
         self.cross_sectional_image = DICOMCrossSectionalImage(dir_name, dicom_slices)
 
-        self.export_annotations_button.setEnabled(True)
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_view_slice_widget()
@@ -155,6 +140,9 @@ class AnnotationWidget(QWidget):
 
     @pyqtSlot()
     def on_export_annotations_button_clicked(self):
+        if self.cross_sectional_image is None:
+            return
+
         dir_path = QFileDialog.getExistingDirectory(self, 'Select directory to create annotation file', 'c:\\')
         if not dir_path:
             return
@@ -166,7 +154,6 @@ class AnnotationWidget(QWidget):
         file_path = QFileDialog.getOpenFileName(self, 'Select annotation file to import', 'c:\\')[0]
         self.cross_sectional_image = DataReader.cross_sectional_image_from_annotation_file(file_path)
 
-        self.export_annotations_button.setEnabled(True)
         self.view_slice_data_widget.setEnabled(True)
         self.reset_controls()
         self.update_view_slice_widget()

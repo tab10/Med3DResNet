@@ -91,19 +91,6 @@ def normalize_slice_projection(slice_pixel_array, crop_bounds, desired_width, de
 
 def mask_3d_array(array):
     print("masking array")
-    '''for i in range(len(test_labels)):
-        test_image_temp = np.load(
-            "%s/%s_images/%s_normalized_3d_%s.npy" % (path, flag, test_labels[i][0], flag))
-        masked_test_image_temp = []
-        if lungmask:
-            for j in range(len(test_image_temp)):
-                slice = np.squeeze(test_image_temp)[:][:][j]
-                slice_mask = make_lungmask(slice)
-                slice_masked = apply_lungmask(slice, slice_mask)
-                masked_test_image_temp.append(slice_masked)
-            masked_test_image_temp += offset
-            MIN_HU, MAX_HU = _update_hu_range_(masked_test_image_temp, MIN_HU, MAX_HU)
-            test_images.append(masked_test_image_temp)'''
     result = []
     #min_hu = max_hu = 0.0
 
