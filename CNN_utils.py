@@ -263,8 +263,8 @@ def load_ACV(data_folder, n_slice_blocks, flag, use_lung_mask, verbose=False):
 	train_data, test_data = normalize(train_data, test_data, n_slice_blocks, verbose=verbose)
 
 	# class label gymnastics
-	train_labels = np.tile(np.asarray(train_labels_list) - 1, 2)  # -1 moves classes to [0,1,2], excluding unknown class
-	test_labels = np.tile(np.asarray(test_labels_list) - 1, 2)
+	train_labels = np.asarray(train_labels_list) - 1  # -1 moves classes to [0,1,2], excluding unknown class
+	test_labels = np.asarray(test_labels_list) - 1
 
 	if verbose:
 		print("Global min HU: %d, global max HU: %d before [0,1] map. Input image channels: %d" % (
