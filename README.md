@@ -252,7 +252,7 @@ ResNet architecture
 3 = malignant metastatic
 
 ### Train
-* python CNN_main.py --phase train --dataset ACV --res_n 18 --lr 0.1 --epoch 10 --z_slice 1
+* python CNN_main.py --phase train --dataset ACV --res_n 18 --lr 0.1 --epoch 10
 
 ### Test
 * python CNN_main.py --phase test --dataset ACV --res_n 18 --lr 0.1 --epoch 10 --z_slice 1

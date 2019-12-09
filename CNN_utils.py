@@ -301,22 +301,24 @@ def normalize(X_train, X_test, n_slice_blocks, verbose=False):
 			print(np.asarray(X_train)[:, :, :, z_slice_start:z_slice_stop].shape)
 			print(X_train_z_slice.shape)
 
-		print("Normalizing z-block %d of %d..." % (i, n_slice_blocks))
-
-		X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)
-		X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
-
-		mean = np.mean(X_train_z_slice, axis=(0, 1, 2, 3))
-		std = np.std(X_train_z_slice, axis=(0, 1, 2, 3))
-
-		X_train_z_slice = (X_train_z_slice - mean) / std
-		X_test_z_slice = (X_test_z_slice - mean) / std
-
 		X_train_z_slices.append(X_train_z_slice)
 		X_test_z_slices.append(X_test_z_slice)
 
-	X_train_z_slices = np.asarray(X_train_z_slices)
-	X_test_z_slices = np.asarray(X_test_z_slices)
+	print("Normalizing z-blocks...") # %d of %d..." % (i, n_slice_blocks))
+
+	#X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)  # for single channel images, use this
+	#X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
+
+	X_train_z_slices = np.transpose(np.asarray(X_train_z_slices), (1, 2, 3, 0))  # option permutes the order to (patient, x, y, channel (z-avg)
+	X_test_z_slices = np.transpose(np.asarray(X_test_z_slices), (1, 2, 3, 0))
+
+	mean = np.mean(X_train_z_slices, axis=(0, 1, 2, 3))
+	std = np.std(X_train_z_slices, axis=(0, 1, 2, 3))
+
+	X_train_z_slices = (X_train_z_slices - mean) / std
+	X_test_z_slices = (X_test_z_slices - mean) / std
+
+	print(X_train_z_slices.shape, X_test_z_slices.shape)
 
 	return X_train_z_slices, X_test_z_slices
 
