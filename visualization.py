@@ -22,8 +22,7 @@ def update_hu_range(img, cur_min, cur_max):
 def apply_lungmask(img, mask):
 	"""Applies erode/dilate mask to image to remove lungs"""
 	img_shape = img.shape  # should be 256x256
-	img_mask_min = np.ones(img_shape) * np.amin(img)  # sets region outside mask to same minimum as outside crop
-	img_masked = np.ma.where(mask == 1.0, img, np.amin(img))
+	img_masked = np.ma.where(mask == 1.0, img, np.amin(img))  # sets region outside mask to same minimum as outside crop
 	return img_masked
 
 
@@ -194,5 +193,5 @@ if __name__ == '__main__':
 
 	#make_axial_movie(masked_affine_img, cmap)
 	make_axial_movie_comparison(affine_img, projection_img, masked_affine_img, masked_projection_img,
-	                            cmap, movie_fn, patient_id, lung_mask=True)
+	                            cmap, movie_fn, patient_id, lung_mask=lung_mask)
 	print("Done!")

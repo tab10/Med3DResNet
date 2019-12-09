@@ -32,7 +32,7 @@ def parse_args():
 	parser.add_argument('--data_folder', type=str, default="acv_image_data", help="Name of image data folder")
 	parser.add_argument('--work_path', type=str, default="/Volumes/APPLE SSD", help="Working folder to start in")
 	parser.add_argument('--data_type', type=str, default='affine', help="affine or projection (type of image data to train with")
-	parser.add_argument('--lung_mask', type=bool, default=False, help="Create/apply lung masks during loading (not recommeneded, only if data doesn't already exist)")
+	parser.add_argument('--lung_mask', type=bool, default=True, help="Use masked input data, must batch export first with annotation GUI.")
 	parser.add_argument('--n_slice_blocks', type=int, default=16, help="This many ResNets will be trained on averaged evenly-spaced z-direction blocks")
 	return check_args(parser.parse_args())
 
