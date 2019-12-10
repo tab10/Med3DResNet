@@ -14,7 +14,6 @@ class DICOMCrossSectionalImage:
     #         are already sorted in correct order
     def __init__(self, dir_path, slices):
         ##### CT IMAGE DATA #####
-
         self.dir_path = dir_path
         self.dicom_slices = slices
 
@@ -24,11 +23,11 @@ class DICOMCrossSectionalImage:
         # The shape of an individual slice in the cross sectional image in 2D NumPy form
         self.slice_shape = self.dicom_slices[0].pixel_array.shape
 
-        # The shape the cross sectional image in (y, x, z) form; NOT NumPy shape format
-        self.shape = [self.slice_shape[0], self.slice_shape[1], self.slice_count]
-
         # The number of slices in the cross sectional image
         self.slice_count = len(self.dicom_slices)
+
+        # The shape the cross sectional image in (y, x, z) form; NOT NumPy shape format
+        self.shape = [self.slice_shape[0], self.slice_shape[1], self.slice_count]
 
         # The second lowest pixel value of all slices in the cross sectional image (the lowest is padding and should
         # not be counted)
