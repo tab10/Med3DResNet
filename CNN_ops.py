@@ -1,7 +1,7 @@
 """
 CNN_ops
 Author: Tim Burt
-This library holds the ResNet class operations functions, layers and sampling definitons, and activation,
+This library holds the ResNet class operations functions, layers and sampling definitions, and activation,
 normalization, and loss functions for TensorFlow.
 
 Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflow
