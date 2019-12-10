@@ -1,3 +1,9 @@
+"""
+preprocess
+This code is depreciated, parts of it are now used directly in the annotation GUI
+Author: Yuan Zi
+"""
+
 # %% import
 import numpy as np
 import pydicom
