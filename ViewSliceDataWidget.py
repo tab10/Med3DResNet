@@ -17,6 +17,7 @@ class ViewSliceDataWidget(QWidget):
 
         self.setup_gui()
 
+    # Sets up the positioning of the UI elements
     def setup_gui(self):
         main_layout = QHBoxLayout(self)
         horizontal_layout = QHBoxLayout()
@@ -33,11 +34,17 @@ class ViewSliceDataWidget(QWidget):
 
         main_layout.addWidget(frame)
 
-
+    # Updates the data for the widget labels
+    # file_name: The file name string to be set as the file name label text
+    # pixel_value: The pixel value to be set as the pixel value label text
+    # pixel_x: The pixel x position to be set as part of the pixel coordinate text
+    # pixel_y: The pixel y position to be set as part of the pixel coordinate text
     def update_data(self, file_name, pixel_value, pixel_x, pixel_y):
         self.file_name_label.setText(f"DICOM File: {file_name}")
         self.pixel_value_label.setText(f"Pixel Value: {pixel_value}")
         self.pixel_coords_label.setText(f"X: {pixel_x} Y: {pixel_y}")
 
+    # Only updates the file name label
+    # file_name: The file name string to be set as the file name label text
     def update_file_name(self, file_name):
         self.file_name_label.setText(f"DICOM File: {file_name}")
