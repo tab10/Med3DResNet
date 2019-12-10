@@ -47,7 +47,7 @@ Change load path point to the folder contains patients' DICOM file and load data
 
 
 The unit of measurement in CT scans is the Hounsfield Unit (HU), which is a measure of radiodensity. CT scanners are carefully calibrated to accurately measure this. From Wikipedia:
-![image](https://github.com/lpopov101/ACVProject/blob/master/images/4rlyReh.png)
+![image](images/4rlyReh.png)
 
 
 
@@ -77,7 +77,7 @@ Some scanners have cylindrical scanning bounds, but the output image is square. 
         
         return np.array(image, dtype=np.int16)
 Let's take a look at one of the patients.
-![image](https://github.com/lpopov101/ACVProject/blob/master/images/HU_p1.png)
+![image](images/HU_p1.png)
 
 ####Heart segmentation(Method 1)
 1.extract crop points coordinate from jason file.
@@ -243,14 +243,6 @@ Tip: To save storage space, don't do normalization and zero centering beforehand
 
 If this tutorial helped you at all, please upvote it and leave a comment :)
 
-
-### Correlation between heart and lung disease
-
-Lipid-rich plaque: 47+-29 HU (range 18-76)
-Fibrous (calcified) plaque: 86+-29 HU (range 57-115)
-CT's with or without lumen-enhancing contrast show no statistical significance on these values.
-(A Meta Analysis and Hierarchical Classification of HU-Based Atherosclerotic Plaque Characterization Criteria)
-
 ### 3D CNN: Ontology and ‘ResNets’
 We employ an architecture similar to that of [S. Trajanovski et al., “Towards radiologist-level cancer risk assessment in CT lung screening using deep learning,” pp. 1–11, 2018.].
 
@@ -272,8 +264,6 @@ ResNet 34-layer super-wide, residual blocks [3, 4, 6, 3]. 8 z-slice averaged (32
 
 ![image](images/plots/ResNet101_ch4_40.png)
 ResNet 101-layer ultra-wide, residual blocks [3, 4, 23, 3]. 4 z-slice averaged (64 CH).
-
-add plots of what 3 z-slice averaging types looks like
 
 #### [LIDC-IDRI Dataset](https://wiki.cancerimagingarchive.net/display/Public/LIDC-IDRI)
 * 1,017 thoracic CT scans
@@ -313,7 +303,7 @@ at runtime which contain the model specifications, given in the table below.
 |:----------------:|:-----------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 |       phase      |     str     |                                                                              Train or test. Train will do initial training, and test will give a final accuracy f-score loading the model.                                                                              |
 |       epoch      |     int     |                                                                                                                 Number of epochs to run. 25 works well.                                                                                                                 |
-|    batch size    |     int     | Size of each minibatch for each epoch. Must be less than total train/test data samples. (e.g. with 100 data samples, if batch_size is 50 and total data size is 100 each epoch will split the data randomly with 2 separate train/test accuracies output to the screen. |
+|    batch size    |     int     | Determines k-fold CV k value. Must be less than total train/test data samples. (e.g. with 100 data samples, if batch_size is 50 and total data size is 100, each epoch will split the data randomly into 2 folds for cross validation. |
 |       res_n      |     int     |                                                                  Number of residual layers for model. '18, 34, 50, 101, 152' may all be called, each doubling in memory requirements as they increase.                                                                  |
 |        lr        |    float    |                                                                         Learning rate. This is an adaptive hyperparameter, starting at 0.1 by default and slows to 0.001 by the end of training.                                                                        |
 |   use_lung_mask  | action_bool |                                                               If flag provided, the model will read masked images of the specified type which remove the lungs (only works with affine correctly for now)                                                               |
@@ -425,12 +415,91 @@ test_accuracy: 0.375
 
 ### Results
 
-TODO: mention correlation between lung cancer/smoking and heart disease as maybe bias
-    how to discard patients under 40 years old (this test is almost always negative)
-    
+![image](images/plots/train_test_accuracy_vs_epochs.png)
+
+Med3DResNet training accuracy vs. epochs (left), testing accuracy vs. epochs (right) for several models/inputs.
+
+|                              Model                             | Test accuracy (2-fold CV) |
+|:--------------------------------------------------------------:|:-------------------------:|
+|    ResNet18, affine input, W lungmask, 16CH axial averaging    |           0.325           |
+|  ResNet18, projection input, W/O lungmask, 4CH axial averaging |           0.375           |
+| ResNet18, projection input, W/O lungmask, 16CH axial averaging |           0.450           |
+|     ResNet34, affine input, W lungmask, 8CH axial averaging    |           0.350           |
+|  ResNet34, projection input, W/O lungmask, 8CH axial averaging |           0.450           |
+|   ResNet101, affine input, W/O lungmask, 4CH axial averaging   |           0.400           |
+|    ResNet101, affine input, W lungmask, 4CH axial averaging    |           0.375           |
+
+Table comparing our 7 model variants and their testing accuracy measured from 2-fold CV.
+
+Above are the training and testing accuracy vs. standard epochs (epochs*k, where k=2 in k-fold cross validation (CV)). Due to 
+data and time constraints, we were not able to test other variants of our model.
+
+However, there are several features worth noting in this plot which give insight into which network architecture and input 
+data normalization provide the best testing accuracy.
+
+The ResNet 101-layer network trained on 4 z-slice averaged blocks (64 CH) did give a test accuracy higher than chance for some of the epochs, and was the only model to do so within the limited amount of training time used.
+ 
+It seems that the projection-shaped inputs, which fill the entire 256x256 slice while preserving scale, in every model tested 
+gave almost 10% better test accuracy than with affine-shaped inputs, which left much wasted space in the data.
+
+Applying a lung mask may or may not help for affine (more data needed), but below are two images showing how the mask works to 
+remove features not within the heart.
+
+![image](images/plots/axial_masks.png)
+Axial slice showing affine method (top left) vs. projection method (top right), and their corresponding masks generated via an automated k-means clustering and erosion 
+& dilation mask method.
+
+![image](images/plots/axial_applied_masks.png)
+Axial slice showing affine method (top left) vs. projection method (top right), and their corresponding masks applied to them to remove structures not part of the heart.
+
+While our automated method worked fine for affine inputs, it needed more fine-tuning to work for the projection inputs, as can be seen above.
+This is why we did not test CNN models with projection input and with lung masks applied.
+
+It is interesting that our z-slice averaging into the input channels helps models with less layers (like ResNet18) to perform better, but with large averaging (16 slice).
+Thus ResNets that have higher training accuracy and less hidden layers find larger features within the chest, and these would not find smaller features associated with early-stage atherosclerosis.
+
+Because of this, it appears that **deep and wide** CNNs are needed to detect features in CT scans that have a medical interpretation which is necessary.
+ 
+Coronal arteries can measure as small as 3mm, about the thickness of a single axial slice with no averaging over neighboring ones. Due to this, it would be simple to add a `None` flag to the 
+n_axial_channels flag and provide all 256 z-slices into a ResNet 101 architecture with the z-axis as the channels, allowing us to see how z-direction averaging & binning truly affects accuracy.
+ 
+This would add considerably to memory requirements however, as training a ResNet101 on a 2019 iMac using TensorFlow on the CPU takes 64GB+ of memory if available.
+
+
+#### Caveats
+
+First, we performed a few models using 80/20 train/test split as outlined in the above section, but test accuracy results were 
+about half of what we obtained with the 70/30 split. This confirms that our lack of data is the largest factor in the low accuracy of our models.
+
+Second, for computational reasons we only performed 2-fold CV (k=2, random shuffle) during each epoch. This could have been easily 
+changed for future runs to get much higher accuracies.
+
+Third, more annotated data and epochs are needed for each model and essential for predictive deep learning in general.
+
+There is a [possible correlation between heart & lung diseases](https://www.health.harvard.edu/heart-health/when-you-look-for-cancer-you-might-find-heart-disease), and this may cause unanticipated biases in our results (especially age cross-correlations).
+This deserves further investigation and study. 
+
+### Conclusions
+We have shown that even with limited data, deep learning models can predict some forms of lung cancer only by seeing 
+the structure and intensity of mass within the cardiovascular regions of the heart. This confirms our hypothesis that lung and heart 
+disease are significantly correlated, specifically that Coronal Artery Calcium (CAC) within arteries is also positively correlated 
+with lung diseases, and their propensity to be benign, malignant, or malignant metastatic (spreading).
+
+There needs to be a lot more work to scientifically justify our claims, including the following tasks:
+1) Run standard CAC risk score algorithms, including patient age, race, etc., and apply an Agatson risk score 
+2) Run our ResNet 3D CNN architecture with proper “ground truth” images of CAC in arteries
+3) Ensure overbalancing is corrected to 50/50 by arguing the strong correlation of lung/heart diseases and CAC present makes them part of the higher risk class
+4) Apply a similarity score to measure the accuracy of a deep learning CAC risk score with both rule-based CAC (counting pixels matching criterion) and ML-based CAC (ML on the MESA dataset we first showed)
+
+CAC threshold ranges we would like to incorporate into our method:
+* Lipid-rich plaque: 47+-29 HU (range 18-76)
+* Fibrous (calcified) plaque: 86+-29 HU (range 57-115)
+* CT's with or without lumen-enhancing contrast show no statistical significance on these values.
+
+From [W. Kristanto, P. M. A. van Ooijen, M. C. Jansen-van der Weide, R. Vliegenthart, and M. Oudkerk, “A Meta Analysis and Hierarchical Classification of HU-Based Atherosclerotic Plaque Characterization Criteria,” PLoS One, vol. 8, no. 9, pp. 1–13, 2013.]
+
+
 ### Docker tutorial
 
 
-#### References
-https://www.health.harvard.edu/heart-health/when-you-look-for-cancer-you-might-find-heart-disease
-CT heart anatomy reference: https://www.youtube.com/watch?v=4pjkCFrcysk&t=216s
+

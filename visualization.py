@@ -222,7 +222,7 @@ def plot_tf_accuracy(data_path):
 		plt.legend()
 		plt.ylim(0.0, 1.0)
 
-	plt.savefig("train_test_accuracy_vs_epochs.pdf")
+	plt.savefig("train_test_accuracy_vs_epochs.png")
 	plt.close()
 
 
