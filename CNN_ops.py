@@ -1,5 +1,11 @@
-# based on package from https://github.com/taki0112/ResNet-Tensorflow
-# Tim Burt 12/8/19
+"""
+CNN_ops
+Author: Tim Burt
+This library holds the ResNet class operations functions, layers and sampling definitons, and activation,
+normalization, and loss functions for TensorFlow.
+
+Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflow
+"""
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
@@ -12,7 +18,6 @@ import tensorflow.contrib as tf_contrib
 
 # append to lines above
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
-
 
 # Xavier : tf_contrib.layers.xavier_initializer()
 # He : tf_contrib.layers.variance_scaling_initializer()

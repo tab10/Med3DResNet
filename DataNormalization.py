@@ -9,7 +9,7 @@ from skimage.transform import ProjectiveTransform
 import MathUtil
 import cv2
 from scipy.ndimage import zoom
-import visualization
+import Visualization
 
 # Normalizes a cross sectional image to a 3D array with desired dimension sizes using affine normalization; this method
 # preserves the shape of the cross sectional image features but produces black space from cropped out areas. Also
@@ -138,8 +138,8 @@ def mask_3d_array(array):
     for i in range(len(array)):
         print(f"masking slice {i + 1}/{len(array)}")
         slice = np.squeeze(array)[:][:][i]
-        slice_mask = visualization.make_lungmask(slice)
-        masked_slice = visualization.apply_lungmask(slice, slice_mask)
+        slice_mask = Visualization.make_lungmask(slice)
+        masked_slice = Visualization.apply_lungmask(slice, slice_mask)
         result.append(masked_slice)
 
     result = np.asarray(result)

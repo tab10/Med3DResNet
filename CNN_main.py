@@ -1,12 +1,19 @@
-# based on package from https://github.com/taki0112/ResNet-Tensorflow
-# Tim Burt 12/8/19
+"""
+CNN_main
+Author: Tim Burt
+This is the entry point for the Med3DResNet code.
+Parses input and logic checks, then initializes the ResNet class and runs it for testing or training.
+
+Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflow
+"""
 
 from CNN_ResNet import ResNet
 import argparse
 from CNN_utils import *
 
-
 """parsing and configuration"""
+
+
 def parse_args():
 	desc = "Tensorflow implementation of ResNet"
 	parser = argparse.ArgumentParser(description=desc)
@@ -24,15 +31,22 @@ def parse_args():
 	parser.add_argument('--log_dir', type=str, default='logs',
 	                    help='Directory name to save training logs')
 	parser.add_argument('--data_folder', type=str, default="acv_image_data", help="Name of image data folder")
-	parser.add_argument('--work_path', type=str, default="/Volumes/APPLE SSD/acv_project_team1_data", help="Working folder to start in")
-	parser.add_argument('--data_type', type=str, default='affine', help="affine or projection (type of image data to train with")
-	parser.add_argument('--use_lung_mask', action='store_true', help="Use masked input data, must batch export first with annotation GUI.")
-	parser.add_argument('--n_axial_channels', type=int, default=16, help="Number of averaged evenly-spaced z-direction blocks. (16, 8, 4). Smaller value-better resolution in axial direction.")
-	parser.add_argument('--train_test_ratio', type=str, required=True, help="Training/testing data split ('70_30' or '80_20')")
+	parser.add_argument('--work_path', type=str, default="/Volumes/APPLE SSD/acv_project_team1_data",
+	                    help="Working folder to start in")
+	parser.add_argument('--data_type', type=str, default='affine',
+	                    help="affine or projection (type of image data to train with")
+	parser.add_argument('--use_lung_mask', action='store_true',
+	                    help="Use masked input data, must batch export first with annotation GUI.")
+	parser.add_argument('--n_axial_channels', type=int, default=16,
+	                    help="Number of averaged evenly-spaced z-direction blocks. (16, 8, 4). Smaller value-better resolution in axial direction.")
+	parser.add_argument('--train_test_ratio', type=str, required=True,
+	                    help="Training/testing data split ('70_30' or '80_20')")
 	return check_args(parser.parse_args())
 
 
 """checking arguments"""
+
+
 def check_args(args):
 	# --checkpoint_dir
 	check_folder(args.checkpoint_dir)
@@ -55,6 +69,8 @@ def check_args(args):
 
 
 """main"""
+
+
 def main():
 	# parse arguments
 	args = parse_args()
@@ -77,7 +93,7 @@ def main():
 
 		print("%d-slice axial-averaged ResNet CNN..." % args.n_axial_channels)
 
-		if args.phase == 'train' :
+		if args.phase == 'train':
 			# launch the graph in a session
 			cnn.train()
 
@@ -86,9 +102,10 @@ def main():
 			cnn.test()
 			print(" [*] Test finished!")
 
-		if args.phase == 'test' :
+		if args.phase == 'test':
 			cnn.test()
 			print(" [*] Test finished!")
+
 
 if __name__ == '__main__':
 	main()

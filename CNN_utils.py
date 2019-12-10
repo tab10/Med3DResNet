@@ -1,39 +1,28 @@
-# based on package from https://github.com/taki0112/ResNet-Tensorflow
-# Tim Burt 12/8/19
+"""
+CNN_utils
+Author: Tim Burt
+This library holds backend functions for the ResNet class, z-slice channel preprocessing, and validation methods
+
+Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflow
+"""
 
 import os
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
 import warnings
-warnings.filterwarnings('ignore',category=FutureWarning)
+
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-# append to lines above
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
-
-from keras.datasets import cifar10, cifar100, mnist, fashion_mnist
-from keras.utils import to_categorical
-import numpy as np
-
-import random
-from scipy import misc
-import csv
-from visualization import *
-
-# append to lines above
 tf.logging.set_verbosity(tf.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, FATAL}
 
-
-def update_hu_range(img, cur_min, cur_max):
-	local_min_hu = np.amin(img)
-	local_max_hu = np.amax(img)
-	if local_min_hu < cur_min:
-		cur_min = local_min_hu
-	if local_max_hu > cur_max:
-		cur_max = local_max_hu
-	return cur_min, cur_max
+from keras.utils import to_categorical
+import random
+import Visualization
 
 
 def check_folder(log_dir):
@@ -41,9 +30,11 @@ def check_folder(log_dir):
 		os.makedirs(log_dir)
 	return log_dir
 
+
 def show_all_variables():
 	model_vars = tf.trainable_variables()
 	slim.model_analyzer.analyze_vars(model_vars, print_info=True)
+
 
 def str2bool(x):
 	return x.lower() in ('true')
@@ -95,12 +86,13 @@ def load_ACV(data_folder, n_axial_channels, flag, use_lung_mask, train_test_rati
 		print("Loading erosion/dilation masked images...")
 	for i in range(len(train_labels)):
 		if use_lung_mask:
-			train_image_fn = "%s/%s_images/%s_normalized_3d_%s_masked.npy" % (data_folder, flag, train_labels[i][0], flag)
+			train_image_fn = "%s/%s_images/%s_normalized_3d_%s_masked.npy" % (
+				data_folder, flag, train_labels[i][0], flag)
 		else:
 			train_image_fn = "%s/%s_images/%s_normalized_3d_%s.npy" % (data_folder, flag, train_labels[i][0], flag)
 		train_image_temp = np.load(train_image_fn)
 		train_image_temp += offset
-		MIN_HU, MAX_HU = update_hu_range(train_image_temp, MIN_HU, MAX_HU)
+		MIN_HU, MAX_HU = Visualization.update_hu_range(train_image_temp, MIN_HU, MAX_HU)
 		train_data.append(np.squeeze(train_image_temp))
 		train_labels_list.append(int(train_labels[i][1]))
 
@@ -123,7 +115,7 @@ def load_ACV(data_folder, n_axial_channels, flag, use_lung_mask, train_test_rati
 
 	if verbose:
 		print("Global min HU: %d, global max HU: %d before [0,1] map. Input image channels: %d" % (
-		MIN_HU, MAX_HU, n_axial_channels))
+			MIN_HU, MAX_HU, n_axial_channels))
 		print(train_labels.shape, train_data.shape)
 
 	train_labels = to_categorical(train_labels, 3)
@@ -139,21 +131,20 @@ def load_ACV(data_folder, n_axial_channels, flag, use_lung_mask, train_test_rati
 
 
 def normalize(X_train, X_test, n_axial_channels, verbose=False):
-
 	X_train_z_slices = []
 	X_test_z_slices = []
 
 	slices = int(256 / n_axial_channels)
 	slice_width = int(256 / slices)
 
-	for i in range(1, slices+1):
+	for i in range(1, slices + 1):
 		print("Averaging z-block %d of %d..." % (i, slices))
 
-		z_slice_start = ((i-1) * slice_width)
+		z_slice_start = ((i - 1) * slice_width)
 		z_slice_stop = (i * slice_width) - 1
 
-		X_train_z_slice = np.mean(np.asarray(X_train)[:,:,:,z_slice_start:z_slice_stop], axis=3)
-		X_test_z_slice = np.mean(np.asarray(X_test)[:,:,:,z_slice_start:z_slice_stop], axis=3)
+		X_train_z_slice = np.mean(np.asarray(X_train)[:, :, :, z_slice_start:z_slice_stop], axis=3)
+		X_test_z_slice = np.mean(np.asarray(X_test)[:, :, :, z_slice_start:z_slice_stop], axis=3)
 
 		if verbose:
 			print(np.asarray(X_train).shape)
@@ -165,10 +156,11 @@ def normalize(X_train, X_test, n_axial_channels, verbose=False):
 
 	print("Normalizing z-blocks...")
 
-	#X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)  # for single channel images, use this
-	#X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
+	# X_train_z_slice = np.expand_dims(X_train_z_slice, axis=-1)  # for single channel images, use this
+	# X_test_z_slice = np.expand_dims(X_test_z_slice, axis=-1)
 
-	X_train_z_slices = np.transpose(np.asarray(X_train_z_slices), (1, 2, 3, 0))  # option permutes the order to (patient, x, y, channel (z-avg)
+	X_train_z_slices = np.transpose(np.asarray(X_train_z_slices),
+	                                (1, 2, 3, 0))  # option permutes the order to (patient, x, y, channel (z-avg)
 	X_test_z_slices = np.transpose(np.asarray(X_test_z_slices), (1, 2, 3, 0))
 
 	mean = np.mean(X_train_z_slices, axis=(0, 1, 2, 3))

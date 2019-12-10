@@ -1,7 +1,9 @@
-# use this to batch run CNN models with different parameters on local machine
-# Tim Burt 12/9/19
-
-# learning rate, batch size, train_test_ratio, epoch - constant due to lack of data
+"""
+CNN_batch_run
+Author: Tim Burt
+This is a batch script which can run multiple CNN models with different parameters on your local machine
+(learning rate, batch size, train_test_ratio, epoch) -> assumed constant
+"""
 
 import os
 import time

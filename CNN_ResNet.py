@@ -1,10 +1,22 @@
-# based on package from https://github.com/taki0112/ResNet-Tensorflow
-# Tim Burt 12/8/19
+"""
+CNN_ResNet
+Author: Tim Burt
+This class implements a ResNet deep and wide architecture [1], which holds the residual layer generator, build, train,
+and load/save methods.
+
+Unit tests based on the MNIST dataset were run initially and confirmed the borrowed code works.
+
+References:
+[1] K. He, X. Zhang, S. Ren, and J. Sun, “Deep Residual Learning for Image Recognition,” in 2016 IEEE Conference on
+Computer Vision and Pattern Recognition (CVPR), 2016, vol. 2016-Decem, pp. 770–778.
+
+Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflow
+"""
 
 import time
 from CNN_ops import *
 from CNN_utils import *
-from visualization import *
+from Visualization import *
 
 
 
