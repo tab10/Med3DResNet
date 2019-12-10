@@ -2,13 +2,13 @@
 # tim burt 11/30/19
 
 import numpy as np
-np.warnings.filterwarnings('ignore')
-
 import os
 import matplotlib.pyplot as plt
-from glob import glob
+import glob
 from skimage import morphology
 from sklearn.cluster import KMeans
+import csv
+import itertools
 
 
 def update_hu_range(img, cur_min, cur_max):
@@ -66,7 +66,7 @@ def make_axial_movie(image, cmap, movie_fn="axial_movie_projection", fps=8):
 		if (i % int(num_slices / 10)) == 0:
 			print("Plotting slice %d of %d..." % (i+1, num_slices))
 		slice = slices[:][:][i]
-		plt.imshow(slice, cmap=plt.get_cmap(cmap), vmin=min_all+1, vmax=max_all)  # +1 removes bkgd intensity
+		plt.imshow(slice, cmap=plt.get_cmap(cmap), vmin=min_all, vmax=max_all)  
 		plt.colorbar()
 		plt.title("Affine Method\nAxial slice %d of %d\nHounsfield Units" % (i+1, num_slices))
 		plt.xlabel("X (pixels)")
@@ -157,11 +157,73 @@ def make_axial_movie_comparison(affine_image, projection_image, masked_affine_im
 	os.system("ffmpeg -r %d -i slice_%%d.png -r 30 %s.mp4 -y" % (fps, movie_fn))
 
 
-#def plot_tf_accuracy_loss(model_fn):
-#	""".csv files exported using TensorBoard"""
-#	test_accuracy =
+def plot_tf_accuracy(data_path):
+	""".csv files exported using TensorBoard"""
+
+	os.chdir(data_path)
+	test_accuracy_fns = sorted(glob.glob("*test_accuracy.csv"))
+	train_accuracy_fns = sorted(glob.glob("*train_accuracy.csv"))
+
+	### THESE WILL CHANGE DEPENDING ON YOUR RESULTS FILES, PLEASE CHECK ###
+	plot_labels = ["ResNet18, affine input, W lungmask, 16CH axial averaging",
+	               "ResNet18, projection input, W/O lungmask, 4CH axial averaging",
+	               "ResNet18, projection input, W/O lungmask, 16CH axial averaging",
+	               "ResNet34, affine input, W lungmask, 8CH axial averaging",
+	               "ResNet34, projection input, W/O lungmask, 8CH axial averaging",
+	               "ResNet101, affine input, W/O lungmask, 4CH axial averaging",
+	               "ResNet101, affine input, W lungmask, 4CH axial averaging"]
+
+	plot_linestyles = [':', ':', ':', ':', ':', ':', ':']
+	plot_linecolors = ['b','g','r','c','m','y','k']
+	plot_linemarkers = ['^','o','o','^','o','o','^']  # match to with/without lungmasks
+	plot_linewidths = [1,3,1,2,2,3,3]  # match to num of channels
+	########################################################################
 
 
+	test_accuracy_data = []
+	train_accuracy_data = []
+
+	# assuming number of test/train accuracy files are the same
+	for i in range(len(test_accuracy_fns)):
+		with open(test_accuracy_fns[i], "r") as f:
+			reader = csv.reader(f)
+			test_accuracy_data.append(list(reader)[1:])
+		f.close()
+
+		with open(train_accuracy_fns[i], "r") as f:
+			reader = csv.reader(f)
+			train_accuracy_data.append(list(reader)[1:])
+		f.close()
+
+	plt.figure(figsize=(28,12))
+
+	for i in range(len(train_accuracy_data)):
+		print("Plotting training/testing results %d of %d..." % (i+1, len(train_accuracy_data)))
+
+		train_epoch_temp = np.asarray(train_accuracy_data[i], dtype=float)[:, 1]
+		train_accuracy_temp = np.asarray(train_accuracy_data[i], dtype=float)[:, 2]
+
+		plt.subplot(1,2,1)
+		plt.plot(train_epoch_temp, train_accuracy_temp, label=plot_labels[i],  color=plot_linecolors[i], marker=plot_linemarkers[i], lw=plot_linewidths[i]*2, markersize=plot_linewidths[i]*3)
+		plt.xlabel("Standard epochs")
+		plt.ylabel("Training accuracy (%)")
+		plt.title("Med3DResNet training accuracy vs. epochs\n70/30 train/test (102/28), batch_size=40, initial_learning rate=0.1, 25 epochs")
+		plt.legend()
+		plt.ylim(0.0, 1.0)
+
+		test_epoch_temp = np.asarray(test_accuracy_data[i], dtype=float)[:, 1]
+		test_accuracy_temp = np.asarray(test_accuracy_data[i], dtype=float)[:, 2]
+
+		plt.subplot(1, 2, 2)
+		plt.plot(test_epoch_temp, test_accuracy_temp, label=plot_labels[i], color=plot_linecolors[i], marker=plot_linemarkers[i], lw=plot_linewidths[i]*2, markersize=plot_linewidths[i]*3)
+		plt.xlabel("Standard epochs")
+		plt.ylabel("Testing accuracy (%)")
+		plt.title("Med3DResNet testing accuracy vs. epochs\n70/30 train/test (102/28), batch_size=40, initial_learning rate=0.1, 25 epochs")
+		plt.legend()
+		plt.ylim(0.0, 1.0)
+
+	plt.savefig("train_test_accuracy_vs_epochs.pdf")
+	plt.close()
 
 
 if __name__ == '__main__':
@@ -170,37 +232,40 @@ if __name__ == '__main__':
 	#single_fn = "/users/timothyburt/Desktop/LIDC-IDRI-0001_normalized_3d_affine.npy"
 	temp_folder = "/users/timothyburt/Desktop/video_temp"  # for images and final video
 	patient_id = "0068"
-	annotations_path = "/Volumes/APPLE SSD/ACV_image_data"
+	annotations_path = "/Volumes/APPLE SSD/acv_project_team1_data/acv_image_data"
+	tf_ckpt_path = "/Users/timothyburt/PycharmProjects/ACVProject/results"
 	# see https://matplotlib.org/3.1.1/gallery/color/colormap_reference.html
 	cmap = 'binary'
 	lung_mask = True
 	###########################################
 
-	plt.rcParams.update({'font.size': 15})
+	plt.rcParams.update({'font.size': 16})
 
-	projection_fn = "%s/projection_images/LIDC-IDRI-%s_normalized_3d_projection.npy" % (annotations_path, patient_id)
-	affine_fn = "%s/affine_images/LIDC-IDRI-%s_normalized_3d_affine.npy" % (annotations_path, patient_id)
-	masked_projection_fn = "%s/projection_images/LIDC-IDRI-%s_normalized_3d_projection_masked.npy" % (annotations_path, patient_id)
-	masked_affine_fn = "%s/affine_images/LIDC-IDRI-%s_normalized_3d_affine_masked.npy" % (annotations_path, patient_id)
+	plot_tf_accuracy(tf_ckpt_path)
 
-	movie_fn = "axial_movie_PID_%s" % patient_id
-
-	#single_img = np.load(single_fn)
-	affine_img = np.load(affine_fn)
-	projection_img = np.load(projection_fn)
-
-	if lung_mask:
-		masked_affine_img = np.load(masked_affine_fn)
-		masked_projection_img = np.load(masked_projection_fn)
-	else:
-		masked_affine_img = None
-		masked_projection_img = None
-
-	if not os.path.exists(temp_folder):
-		os.mkdir(temp_folder)
-	os.chdir(temp_folder)
+	# projection_fn = "%s/projection_images/LIDC-IDRI-%s_normalized_3d_projection.npy" % (annotations_path, patient_id)
+	# affine_fn = "%s/affine_images/LIDC-IDRI-%s_normalized_3d_affine.npy" % (annotations_path, patient_id)
+	# masked_projection_fn = "%s/projection_images/LIDC-IDRI-%s_normalized_3d_projection_masked.npy" % (annotations_path, patient_id)
+	# masked_affine_fn = "%s/affine_images/LIDC-IDRI-%s_normalized_3d_affine_masked.npy" % (annotations_path, patient_id)
+	#
+	# movie_fn = "axial_movie_PID_%s" % patient_id
+	#
+	# #single_img = np.load(single_fn)
+	# affine_img = np.load(affine_fn)
+	# projection_img = np.load(projection_fn)
+	#
+	# if lung_mask:
+	# 	masked_affine_img = np.load(masked_affine_fn)
+	# 	masked_projection_img = np.load(masked_projection_fn)
+	# else:
+	# 	masked_affine_img = None
+	# 	masked_projection_img = None
+	#
+	# if not os.path.exists(temp_folder):
+	# 	os.mkdir(temp_folder)
+	# os.chdir(temp_folder)
 
 	#make_axial_movie(masked_affine_img, cmap)
-	make_axial_movie_comparison(affine_img, projection_img, masked_affine_img, masked_projection_img,
-	                            cmap, movie_fn, patient_id, lung_mask=lung_mask)
+	#make_axial_movie_comparison(affine_img, projection_img, masked_affine_img, masked_projection_img, cmap, movie_fn, patient_id, lung_mask=lung_mask)
+
 	print("Done!")

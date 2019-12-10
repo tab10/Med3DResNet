@@ -1,9 +1,4 @@
-# based on package from https://github.com/taki0112/ResNet-Tensorflowi
-
-#  implement 16-channel resnet in evenly-spaced blocks averaged in the z-direction
-# 1) average 256 z blocks into 16
-# 2)
-# 3)
+# based on package from https://github.com/taki0112/ResNet-Tensorflow
 # Tim Burt 12/8/19
 
 from CNN_ResNet import ResNet
