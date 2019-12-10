@@ -1,3 +1,10 @@
+'''
+SpinnerDialComboWidget
+Author: Luben Popov
+This custom QT widget combines two QSpinBox widgets to form an adjustment widget for XY coordinates. This widget only
+supports coordinates where X >= 0 and Y >= 0.
+'''
+
 from PyQt5.Qt import *
 
 class XYSpinnerComboWidget(QWidget):

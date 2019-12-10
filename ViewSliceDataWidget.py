@@ -1,3 +1,9 @@
+'''
+ViewSLiceDataWidget
+Author: Luben Popov
+This custom QT widget contains useful data related to the view slice in the annotation widget.
+'''
+
 from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QFrame
 
 class ViewSliceDataWidget(QWidget):

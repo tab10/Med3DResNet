@@ -1,3 +1,9 @@
+'''
+SpinnerDialComboWidget
+Author: Luben Popov
+This custom QT widget combines the QSpinBox and QDial into a single widget with the functionality of both.
+'''
+
 from PyQt5.QtWidgets import QLabel, QSpinBox, QDial, QWidget, QVBoxLayout
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
