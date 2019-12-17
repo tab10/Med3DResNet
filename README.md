@@ -12,22 +12,22 @@
   + Design and implement a CNN that performs feature selection on the normalized arrays
  
 ### Project Pipeline
-![image](ACVProject/images/project_pipeline.png)
+![image](images/project_pipeline.png)
 
 ## Setup/Evaluation
-[See docs folder for a manual with usage and a tutorial.](ACVProject/documentation/SetupTutorial.pdf)
+[See docs folder for a manual with usage and a tutorial.](documentation/SetupTutorial.pdf)
 
 ### Annotation GUI Tool
 GUI tool to annotate DICOM images and batch export.
 
 To run, type `python CTImageAnnotationTool.py`
 
-[See docs folder for a manual with usage and a tutorial.](ACVProject/documentation/CTImageAnnotationToolManual.pdf)
+[See docs folder for a manual with usage and a tutorial.](documentation/CTImageAnnotationToolManual.pdf)
 
 ### Med3DResNet Training/Testing CLI Tool
 To Run, type `python CNN_main.py **kwargs`
 
-[See docs folder for a manual with usage and a tutorial.](ACVProject/documentation/Med3DResNetManual.pdf)
+[See docs folder for a manual with usage and a tutorial.](documentation/Med3DResNetManual.pdf)
 
 ## Contributions
 
