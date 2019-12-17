@@ -22,7 +22,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)  # or any {DEBUG, INFO, WARN, ERROR, 
 
 from keras.utils import to_categorical
 import random
-import Visualization
+from ACVProject import Visualization
 
 
 def check_folder(log_dir):

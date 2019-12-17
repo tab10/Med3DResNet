@@ -7,9 +7,9 @@ Parses input and logic checks, then initializes the ResNet class and runs it for
 Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflow
 """
 
-from CNN_ResNet import ResNet
+from ACVProject.CNN_ResNet import ResNet
 import argparse
-from CNN_utils import *
+from ACVProject.CNN_utils import *
 
 """parsing and configuration"""
 

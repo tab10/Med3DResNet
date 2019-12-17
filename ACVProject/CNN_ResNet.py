@@ -14,9 +14,9 @@ Parts of code based on package from https://github.com/taki0112/ResNet-Tensorflo
 """
 
 import time
-from CNN_ops import *
-from CNN_utils import *
-from Visualization import *
+from ACVProject.CNN_ops import *
+from ACVProject.CNN_utils import *
+from ACVProject.Visualization import *
 
 
 

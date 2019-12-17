@@ -5,7 +5,7 @@ This serves as the entry point for the annotation tool, and should be run in ord
 '''
 
 from PyQt5.QtWidgets import QApplication
-from CTImageAnnotationToolMainWindow import CTImageAnnotationToolMainWindow
+from ACVProject.CTImageAnnotationToolMainWindow import CTImageAnnotationToolMainWindow
 
 
 def main():
