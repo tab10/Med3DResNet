@@ -15,7 +15,7 @@
 ![image](images/project_pipeline.png)
 
 ## Setup/Evaluation
-[See docs folder for a manual with usage and a tutorial.](documentation/SetupTutorial.pdf)
+[See docs folder for a manual with usage and a tutorial.](documentation/Team1_project_evaluation_Tutorial.pdf)
 
 ### Annotation GUI Tool
 GUI tool to annotate DICOM images and batch export.
