@@ -1,7 +1,7 @@
 # Cardiovascular risk computed via Deep Learning (DL) on thoracic CT scans (Med3DResNet)
 
 ### Timothy Burt, Luben Popov, Yuan Zi
-#### COSC 7373 Adv. Computer Vision Fall 2019 Team 1
+#### COSC 7373 Advanced Computer Vision Fall 2019 Team 1
 ##### University of Houston
 
 ## Project Goal
